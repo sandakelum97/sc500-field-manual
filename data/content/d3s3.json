@@ -1,0 +1,1435 @@
+{
+ "sectionId": "d3s3",
+ "objectives": [
+  {
+   "objectiveId": "d3s3o1",
+   "summary": "Defender for Containers protects Kubernetes clusters, nodes, workloads, registries and images across AKS, EKS, GKE and Arc-enabled clusters. It combines agentless capabilities (Kubernetes API discovery, control plane posture, registry and running-image vulnerability assessment, control plane threat detection) with sensor-based capabilities (the eBPF Defender sensor DaemonSet for runtime threat detection, antimalware, DNS detection and binary drift). Exam questions usually hinge on which capability needs an in-cluster component and which plan or component toggle turns it on.",
+   "keyFacts": [
+    {
+     "fact": "Image vulnerability assessment, Kubernetes posture assessment and control plane threat detection are agentless; runtime threat detection requires in-cluster components (the Defender sensor).",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+    },
+    {
+     "fact": "On AKS the Defender sensor is a lightweight DaemonSet that uses eBPF to collect process, network and Kubernetes event telemetry; it is deployed as an AKS Security profile and needs only outbound HTTPS 443, with no inbound connections to the cluster.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+    },
+    {
+     "fact": "Agentless discovery for Kubernetes creates an identity, assigns it the built-in Kubernetes Agentless Operator role at subscription scope, and uses AKS Trusted Access to bind a ClusterRole that gives Defender read access to the data plane. It can be enabled from either Defender CSPM or Defender for Containers.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+    },
+    {
+     "fact": "The Containers plan settings expose separate components: Agentless scanning for machines, Defender sensor (with optional Security Gating and Runtime Anti Malware), Azure Policy, Kubernetes API access, and Registry access (with Security findings). Registry vulnerability assessment requires Registry access to be enabled.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable-plan"
+    },
+    {
+     "fact": "New or imported registry images are typically scanned within a few hours, and a daily rescan covers images pushed or pulled in the last 30 days or currently running in monitored clusters; older unused images stop getting updated findings until pulled again.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/agentless-vulnerability-assessment-azure"
+    },
+    {
+     "fact": "Gated deployment uses vulnerability findings to audit or deny deployments of images that do not meet your vulnerability policy before they are admitted to the cluster.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-introduction"
+    }
+   ],
+   "portalPath": "Microsoft Defender for Cloud > Environment settings > <subscription> > Defender plans > Containers > Settings",
+   "lab": {
+    "title": "Enable Defender for Containers components on a trial subscription",
+    "steps": [
+     "Sign in to the Azure portal and open Microsoft Defender for Cloud > Environment settings.",
+     "Select your trial subscription, find the Containers row on the Defender plans page and set it to On.",
+     "Select Settings on the Containers row and turn on Defender sensor, Azure Policy, Kubernetes API access and Registry access. Select Continue, then Save.",
+     "Create a small AKS cluster (az aks create -g rg-lab -n aks-lab --node-count 1 --generate-ssh-keys) and an ACR, then push or import any public image into the registry.",
+     "Run kubectl get pods -n kube-system and look for microsoft-defender-collector and microsoft-defender-publisher pods.",
+     "After a few hours, open Defender for Cloud > Recommendations and search for the registry image vulnerability recommendation."
+    ],
+    "verify": "Defender sensor pods are Running in kube-system, and the recommendation for Azure registry container images with vulnerabilities shows your registry once scanning completes.",
+    "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable-plan"
+   },
+   "learnModules": [
+    {
+     "title": "Configure and manage threat protection by using Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/microsoft-defender-cloud-threat-protection/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which Defender for Containers capability requires the in-cluster Defender sensor: registry image scanning, Kubernetes posture assessment, or runtime threat detection?",
+     "back": "Runtime threat detection. Image vulnerability assessment and posture assessment are agentless.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+    },
+    {
+     "front": "What technology does the Defender sensor DaemonSet use to collect runtime telemetry?",
+     "back": "eBPF, collecting Kubernetes events, process and network data from each node.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+    },
+    {
+     "front": "Which plan setting must be on for Defender to scan images in ACR, ECR or Google registries?",
+     "back": "Registry access (with the Security findings sub-option to link findings to images).",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/agentless-vulnerability-assessment-azure"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o1-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso has the Defender for Containers plan enabled on Sub1. Only the Kubernetes API access and Registry access components are turned on. AKS1 in Sub1 is running. The SOC reports that no alerts appear for a test reverse shell launched inside a pod, although registry vulnerability findings are arriving.",
+     "question": "What should you enable to get alerts for suspicious process activity inside AKS1 containers?",
+     "options": [
+      "The Azure Policy component",
+      "The Defender sensor component",
+      "Agentless scanning for machines",
+      "The Security findings sub-option of Registry access"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Runtime threat detection is not agentless; it needs the Defender sensor DaemonSet that collects process and network telemetry with eBPF. Azure Policy deploys Gatekeeper for posture and enforcement, not runtime detection. Agentless scanning for machines takes disk snapshots for vulnerabilities and secrets, which is out-of-band and does not see live processes. Security findings only links registry vulnerability results to images.",
+     "sources": [
+      {
+       "title": "Defender for Containers architecture",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+      },
+      {
+       "title": "Enable Defender for Containers",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable-plan"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o1-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about Defender for Containers, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "Agentless discovery for Kubernetes can be turned on from either the Defender CSPM plan or the Defender for Containers plan.",
+       "answer": true
+      },
+      {
+       "text": "The Defender sensor on AKS requires an inbound firewall rule from Defender for Cloud to the cluster nodes.",
+       "answer": false
+      },
+      {
+       "text": "An image that was pushed 90 days ago, has not been pulled since, and is not running in any monitored cluster is still rescanned every day.",
+       "answer": false
+      }
+     ],
+     "explanation": "Agentless discovery creates either a DefenderCSPMSecurityOperator or a DefenderForContainersSecurityOperator identity depending on which plan enabled it, so statement 1 is true. All Defender components use outbound-only connectivity (the publisher pod needs HTTPS 443 egress), so no inbound rule is needed. The daily rescan only covers images pushed or pulled within 30 days or currently running in a monitored cluster.",
+     "sources": [
+      {
+       "title": "Defender for Containers architecture",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+      },
+      {
+       "title": "Vulnerability management for containers",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/agentless-vulnerability-assessment-azure"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o1-q3",
+     "type": "multi",
+     "difficulty": 3,
+     "scenario": "Fabrikam has Defender for Containers enabled on Sub1, and Registry access with Security findings is already turned on. Fabrikam wants to stop deployments of images with critical vulnerabilities into AKS2 (AKS 1.31, OIDC issuer enabled) and also wants Kubernetes data plane best practices, such as blocking privileged containers, to be enforced at admission time.",
+     "question": "Which two components should be enabled? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Defender sensor with Defender Security Gating enabled",
+      "Azure Policy for Kubernetes (Azure Policy component)",
+      "Agentless scanning for machines",
+      "Defender Runtime Anti Malware"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Gated deployment needs the Defender sensor with Security Gating (plus Registry access with Security findings, which is already on); its admission controller audits or denies images that break your vulnerability rules. The Azure Policy add-on extends Gatekeeper v3 as an admission webhook, so a policy such as no privileged containers can be enforced and future requests blocked. Agentless machine scanning only assesses node disk snapshots and blocks nothing. Runtime Anti Malware detects (and can block) malicious file execution in running workloads, not deployments at admission. Note: Defender's Kubernetes misconfiguration enforcement, which relies on Kubernetes API access, is another documented way to block privileged containers.",
+     "sources": [
+      {
+       "title": "Enable Defender for Containers",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-enable-plan"
+      },
+      {
+       "title": "Configure gated deployment rules",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enablement-guide-runtime-gated"
+      },
+      {
+       "title": "Defender for Containers architecture",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-containers-architecture"
+      },
+      {
+       "title": "Kubernetes misconfiguration enforcement",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/kubernetes-misconfiguration-enforcement"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o2",
+   "summary": "Securing AKS covers control plane identity (Microsoft Entra authentication, Azure RBAC for Kubernetes authorization, disabling local accounts), control plane network exposure (authorized IP ranges or a private cluster), workload governance with the Azure Policy add-on, pod-to-Azure identity with Microsoft Entra Workload ID, and east-west traffic control with network policies. Watch for mutually exclusive options and the commands that implement each one.",
+   "keyFacts": [
+    {
+     "fact": "Local accounts are enabled by default, and the --admin credential stays a non-auditable back door even with Entra integration. Use az aks update --disable-local-accounts; on an existing cluster, rotate cluster certificates afterward to revoke credentials already issued.",
+     "source": "https://learn.microsoft.com/azure/aks/local-accounts"
+    },
+    {
+     "fact": "With Azure RBAC for Kubernetes authorization, assign built-in roles such as Azure Kubernetes Service RBAC Reader, Writer, Admin or Cluster Admin at cluster or namespace scope. RBAC Reader cannot read Secrets, and RBAC Writer can read Secrets and run pods as any service account in the namespace.",
+     "source": "https://learn.microsoft.com/azure/aks/entra-id-authorization"
+    },
+    {
+     "fact": "API server authorized IP ranges need the Standard load balancer SKU, allow up to 200 ranges, and cannot be used with private clusters.",
+     "source": "https://learn.microsoft.com/azure/aks/api-server-authorized-ip-ranges"
+    },
+    {
+     "fact": "A private cluster (--enable-private-cluster) exposes the API server only through a private endpoint in the VNet; --disable-public-fqdn also removes the publicly resolvable DNS name.",
+     "source": "https://learn.microsoft.com/azure/aks/private-clusters"
+    },
+    {
+     "fact": "Workload identity requires the OIDC issuer and workload identity to be enabled on AKS Standard, a federated identity credential linking the managed identity to system:serviceaccount:<namespace>:<name>, and the pod label azure.workload.identity/use: \"true\". A managed identity supports at most 20 federated credentials.",
+     "source": "https://learn.microsoft.com/azure/aks/workload-identity-overview"
+    },
+    {
+     "fact": "AKS network policy engines are Cilium (recommended, Linux, with FQDN and L7 policy support), Azure NPM and Calico (the option for Windows nodes). By default, all pods can talk to each other until a network policy is applied.",
+     "source": "https://learn.microsoft.com/azure/aks/use-network-policies"
+    }
+   ],
+   "portalPath": "Kubernetes services > <cluster> > Settings > Security configuration (authentication and authorization) / Networking (API server access) / Policies",
+   "lab": {
+    "title": "Harden an AKS cluster with Entra ID, Azure RBAC, authorized IPs and the Azure Policy add-on",
+    "steps": [
+     "Create a Microsoft Entra group named aks-admins and note its object ID.",
+     "Create a cluster: az aks create -g rg-lab -n aks-sec --enable-aad --aad-admin-group-object-ids <groupId> --enable-azure-rbac --disable-local-accounts --enable-oidc-issuer --enable-workload-identity --network-plugin azure --network-dataplane cilium --generate-ssh-keys",
+     "Restrict API access: az aks update -g rg-lab -n aks-sec --api-server-authorized-ip-ranges <your-public-ip>/32",
+     "Register the provider (az provider register --namespace Microsoft.PolicyInsights) and run az aks enable-addons --addons azure-policy -g rg-lab -n aks-sec",
+     "Assign a user the Azure Kubernetes Service RBAC Reader role at the cluster scope with az role assignment create.",
+     "Run az aks get-credentials --admin -g rg-lab -n aks-sec and confirm that it fails."
+    ],
+    "verify": "The --admin credential request returns a \"disable local accounts\" error, kubectl get pods -n gatekeeper-system shows Gatekeeper pods, and the RBAC Reader user can list pods but not secrets.",
+    "source": "https://learn.microsoft.com/azure/aks/local-accounts"
+   },
+   "learnModules": [
+    {
+     "title": "Configure an Azure Kubernetes Service cluster",
+     "url": "https://learn.microsoft.com/training/modules/configure-azure-kubernetes-service-cluster/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Can you combine API server authorized IP ranges with a private AKS cluster?",
+     "back": "No. Authorized IP ranges apply only to public API servers and are not supported on private clusters.",
+     "source": "https://learn.microsoft.com/azure/aks/api-server-authorized-ip-ranges"
+    },
+    {
+     "front": "Which pod label must be set for Microsoft Entra Workload ID injection?",
+     "back": "azure.workload.identity/use: \"true\". Without it, the webhook does not inject the token volume and the pods fail after restart.",
+     "source": "https://learn.microsoft.com/azure/aks/workload-identity-overview"
+    },
+    {
+     "front": "Which AKS network policy engine should you use for Windows node pools?",
+     "back": "Calico. Cilium supports Linux only, and AKS stopped supporting Azure NPM on Windows nodes on September 30, 2026.",
+     "source": "https://learn.microsoft.com/azure/aks/use-network-policies"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o2-q1",
+     "type": "hotspot",
+     "difficulty": 2,
+     "scenario": "You are creating AKS3 for Contoso. Requirements: (1) all cluster access must flow through Microsoft Entra ID with no static admin credential; (2) Kubernetes permissions must be managed with Azure role assignments; (3) pods must call Key Vault without secrets.",
+     "question": "Select the az aks create parameter that meets each requirement.",
+     "dropdowns": [
+      {
+       "label": "Requirement 1",
+       "options": [
+        "--disable-local-accounts",
+        "--enable-private-cluster",
+        "--disable-public-fqdn"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Requirement 2",
+       "options": [
+        "--enable-azure-rbac",
+        "--enable-addons azure-policy",
+        "--network-policy azure"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Requirement 3",
+       "options": [
+        "--enable-oidc-issuer --enable-workload-identity",
+        "--enable-managed-identity only",
+        "--attach-acr"
+       ],
+       "answer": 0
+      }
+     ],
+     "explanation": "--disable-local-accounts removes the certificate-based admin kubeconfig. A private cluster or a disabled public FQDN changes network reachability, not authentication. --enable-azure-rbac makes Azure role assignments authorize Kubernetes API calls; the Policy add-on and network policy are unrelated to authorization. Pod-to-Azure access without secrets uses Workload ID, which needs the OIDC issuer and workload identity enabled. The cluster managed identity is for the cluster itself, and --attach-acr only grants image pull.",
+     "sources": [
+      {
+       "title": "Manage local accounts",
+       "url": "https://learn.microsoft.com/azure/aks/local-accounts"
+      },
+      {
+       "title": "Entra ID authorization for the Kubernetes API",
+       "url": "https://learn.microsoft.com/azure/aks/entra-id-authorization"
+      },
+      {
+       "title": "Workload ID overview",
+       "url": "https://learn.microsoft.com/azure/aks/workload-identity-overview"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o2-q2",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "AKS4 is a private cluster. A security engineer wants to also limit API server access to the corporate egress range 203.0.113.0/24 by using authorized IP ranges.",
+     "question": "What is the result?",
+     "options": [
+      "The range is added, and only 203.0.113.0/24 can reach the private endpoint",
+      "The configuration is not supported because authorized IP ranges cannot be used with private clusters",
+      "It works only if the cluster uses the Basic load balancer SKU",
+      "It works only after --disable-public-fqdn is set"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Learn states that authorized IP ranges cannot be used with private clusters; a private cluster is already reachable only through its private endpoint. Authorized IP ranges require the Standard load balancer, not Basic, and Basic is no longer supported. Disabling the public FQDN removes the public DNS name but does not make authorized ranges compatible.",
+     "sources": [
+      {
+       "title": "API server authorized IP ranges",
+       "url": "https://learn.microsoft.com/azure/aks/api-server-authorized-ip-ranges"
+      },
+      {
+       "title": "Create a private AKS cluster",
+       "url": "https://learn.microsoft.com/azure/aks/private-clusters"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o2-q3",
+     "type": "order",
+     "difficulty": 3,
+     "scenario": "You must let the payments pod in namespace pay on AKS5 (AKS Standard) read a Key Vault secret by using Microsoft Entra Workload ID.",
+     "question": "Put the steps in the correct order.",
+     "items": [
+      "Enable the OIDC issuer and workload identity on the cluster",
+      "Create a user-assigned managed identity and grant it access to the Key Vault",
+      "Create a Kubernetes service account annotated with the identity client ID",
+      "Create a federated identity credential using the cluster OIDC issuer URL and subject system:serviceaccount:pay:<sa-name>",
+      "Deploy the pod with the service account and the label azure.workload.identity/use: \"true\""
+     ],
+     "explanation": "This follows the documented Learn sequence. On AKS Standard the cluster must expose an OIDC issuer before Entra ID can trust its tokens. The managed identity must exist before you can annotate the service account with its client ID, and it needs Key Vault Secrets User (or equivalent) to read the secret. The federated credential ties the cluster issuer and the service account subject to the identity. Only then does deploying the labeled pod cause the webhook to inject the projected token.",
+     "sources": [
+      {
+       "title": "Microsoft Entra Workload ID with AKS",
+       "url": "https://learn.microsoft.com/azure/aks/workload-identity-overview"
+      },
+      {
+       "title": "Deploy and configure workload identity on AKS",
+       "url": "https://learn.microsoft.com/azure/aks/workload-identity-deploy-cluster"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o3",
+   "summary": "Azure Container Registry security covers authentication (prefer Microsoft Entra identities, keep the admin account off, use repository-scoped tokens and scope maps only for non-Entra clients), network isolation (private endpoints and disabling public access, IP rules, trusted services bypass), and image vulnerability scanning by Defender for Cloud. Tier requirements (Premium for networking) and side effects of disabling public access are common exam traps.",
+   "keyFacts": [
+    {
+     "fact": "The admin user is disabled by default, has full push and pull rights, and all its users appear as one identity. Built-in Azure Policy can audit, deny or modify registries to keep the local admin account disabled.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-faq"
+    },
+    {
+     "fact": "Repository-scoped tokens are tied to exactly one scope map that lists repositories and actions (content/read, content/write, content/delete, metadata/read, metadata/write). They work in all tiers but cannot be assigned to Entra identities.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-token-based-repository-permissions"
+    },
+    {
+     "fact": "Private endpoints need the Premium tier (up to 200 per registry). After you disable public network access, az acr build stops working unless you use dedicated agent pools or allow the task service tag IPs.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints"
+    },
+    {
+     "fact": "Public IP network rules are Premium-only, are capped at 200 rules, and do not apply to traffic arriving through private endpoints.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks"
+    },
+    {
+     "fact": "When public access is disabled, trusted services such as Microsoft Defender for Cloud can reach the registry only if the trusted services bypass setting is enabled.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks"
+    },
+    {
+     "fact": "Defender for Cloud surfaces registry findings as the recommendation \"Azure registry container images should have vulnerabilities resolved (powered by Microsoft Defender Vulnerability Management)\".",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/recommendations-reference-container"
+    }
+   ],
+   "portalPath": "Container registries > <registry> > Settings > Access keys / Networking; Repository permissions > Tokens / Scope maps",
+   "lab": {
+    "title": "Lock down a Premium registry and issue a scoped token",
+    "steps": [
+     "Create a Premium registry: az acr create -g rg-lab -n <acrname> --sku Premium",
+     "Confirm admin is off: az acr update -n <acrname> --admin-enabled false",
+     "Create a scoped token: az acr token create --name ci-pull --registry <acrname> --repository samples/hello-world content/read",
+     "Generate a password with an expiry: az acr token credential generate --name ci-pull --registry <acrname> --expiration-in-days 30 --password1",
+     "In the portal, add a private endpoint under Networking > Private access, then set Public network access to Disabled.",
+     "Under Networking, enable the setting that allows trusted Microsoft services to access the registry."
+    ],
+    "verify": "docker login with the token succeeds from a VM inside the VNet. A docker push to samples/hello-world fails because the token has read-only access, and access from the public internet is refused.",
+    "source": "https://learn.microsoft.com/azure/container-registry/container-registry-token-based-repository-permissions"
+   },
+   "learnModules": [
+    {
+     "title": "Deploy and use Azure Container Registry",
+     "url": "https://learn.microsoft.com/training/modules/deploy-use-azure-container-registry/"
+    },
+    {
+     "title": "Plan and implement security for private access to Azure resources",
+     "url": "https://learn.microsoft.com/training/modules/security-private-access-azure-resources/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which ACR tier is required for private endpoints and IP network rules?",
+     "back": "Premium.",
+     "source": "https://learn.microsoft.com/azure/container-registry/secure-container-registry"
+    },
+    {
+     "front": "How many scope maps can be attached to a single ACR token?",
+     "back": "Exactly one. A scope map can be reused by many tokens.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-token-based-repository-permissions"
+    },
+    {
+     "front": "What breaks for Defender for Cloud scanning when you disable ACR public access?",
+     "back": "Defender reaches the registry only if the trusted services bypass is enabled.",
+     "source": "https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o3-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "A partner of Fabrikam must pull images only from the partner/* repositories in ACR1. The partner cannot use Microsoft Entra ID. Credentials must expire after 30 days.",
+     "question": "What should you configure?",
+     "options": [
+      "Enable the admin user and share password2",
+      "Create a token with a scope map granting content/read on partner/* and set a password expiry",
+      "Assign the AcrPull role to a guest account",
+      "Enable anonymous pull"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Tokens with scope maps give non-Entra clients repository-scoped, time-limited access, and wildcards such as partner/* are supported. The admin user grants registry-wide push and pull and is meant for single-user testing. AcrPull requires an Entra identity, which the partner cannot use, and applies to the whole registry. Anonymous pull exposes every repository to unauthenticated clients.",
+     "sources": [
+      {
+       "title": "Token-based repository permissions",
+       "url": "https://learn.microsoft.com/azure/container-registry/container-registry-token-based-repository-permissions"
+      },
+      {
+       "title": "Authenticate with ACR",
+       "url": "https://learn.microsoft.com/azure/container-registry/container-registry-authentication"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o3-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "ACR2 is Premium, has an approved private endpoint, and public network access is set to Disabled.",
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "IP network rules configured on ACR2 also filter traffic that uses the private endpoint.",
+       "answer": false
+      },
+      {
+       "text": "az acr build commands may fail unless a dedicated agent pool or service tag allowance is used.",
+       "answer": true
+      },
+      {
+       "text": "Defender for Cloud can scan ACR2 images only if the trusted services bypass is enabled.",
+       "answer": true
+      }
+     ],
+     "explanation": "IP rules apply only to the public endpoint, not to private endpoints. Learn notes that az acr build stops working when public access is disabled because tasks use public IPs, unless you use dedicated agent pools or the AzureContainerRegistry service tag. Defender for Cloud is a trusted service that needs the bypass setting when network rules restrict access.",
+     "sources": [
+      {
+       "title": "Connect privately to ACR",
+       "url": "https://learn.microsoft.com/azure/container-registry/container-registry-private-endpoints"
+      },
+      {
+       "title": "Configure public IP network rules",
+       "url": "https://learn.microsoft.com/azure/container-registry/container-registry-access-selected-networks"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o3-q3",
+     "type": "multi",
+     "difficulty": 1,
+     "question": "Which two actions follow ACR security guidance from Microsoft Learn? Each correct answer presents a complete solution. Choose two.",
+     "options": [
+      "Keep the admin account disabled and use Entra identities with AcrPull or AcrPush",
+      "Use managed identities for Azure compute that pulls images",
+      "Share the admin password among build agents for simplicity",
+      "Use subscription Contributor for all pipelines"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Learn recommends keeping the admin account disabled, authenticating with Entra identities through least-privilege data-plane roles, and using managed identities for AKS, ACI or ACR Tasks. Sharing admin credentials makes access unattributable, and broad roles such as Contributor go against least privilege.",
+     "sources": [
+      {
+       "title": "Secure your ACR deployment",
+       "url": "https://learn.microsoft.com/azure/container-registry/secure-container-registry"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o4",
+   "summary": "For Azure Container Instances, the key controls are managed identity (including identity-based image pulls from ACR) and deploying container groups into a delegated VNet subnet. For Azure Container Apps, the controls are environment accessibility (external or internal), app ingress visibility, IP ingress restrictions, built-in authentication and managed identity image pulls. Several limitations, such as user-assigned only for ACI ACR pulls and no mixing of allow and deny rules, are classic distractors.",
+   "keyFacts": [
+    {
+     "fact": "ACI does not support system-assigned managed identity for ACR image pulls; you must use a user-assigned identity. A private-endpoint ACR must sit on a different subnet from the ACI-delegated subnet.",
+     "source": "https://learn.microsoft.com/azure/container-instances/using-azure-container-registry-mi"
+    },
+    {
+     "fact": "Container groups in a VNet must use a NAT gateway for outbound connectivity and cannot be exposed directly with a public IP or DNS label.",
+     "source": "https://learn.microsoft.com/azure/container-instances/container-instances-virtual-network-concepts"
+    },
+    {
+     "fact": "Container Apps IP restrictions are either all Allow or all Deny rules, which cannot be mixed. With no rules, all inbound traffic is allowed, and blocked clients receive \"RBAC: Access Denied\".",
+     "source": "https://learn.microsoft.com/azure/container-apps/ip-restrictions"
+    },
+    {
+     "fact": "An internal Container Apps environment has no public endpoint, and this cannot be changed after creation. Private endpoints on an environment require public network access to be Disabled.",
+     "source": "https://learn.microsoft.com/azure/container-apps/networking"
+    },
+    {
+     "fact": "On an internal environment, \"Limited to Container Apps Environment\" ingress hides the app from the rest of the VNet as well; VNet clients receive HTTP 404 through the internal load balancer.",
+     "source": "https://learn.microsoft.com/azure/container-apps/ingress-overview"
+    },
+    {
+     "fact": "Container Apps can pull from ACR with a system-assigned or user-assigned identity, but Learn recommends user-assigned where possible. The identity needs the AcrPull role.",
+     "source": "https://learn.microsoft.com/azure/container-apps/managed-identity-image-pull"
+    }
+   ],
+   "portalPath": "Container App > Networking > Ingress (IP Restrictions); Container App > Settings > Identity; Container instances > Create > Networking (Private)",
+   "lab": {
+    "title": "Restrict Container Apps ingress and pull with a user-assigned identity",
+    "steps": [
+     "Create a user-assigned identity: az identity create -g rg-lab -n uai-pull, then assign it AcrPull on your ACR.",
+     "Create a Container App that uses it: az containerapp create -n app1 -g rg-lab --environment env1 --user-assigned <ID> --registry-identity <ID> --registry-server <acr>.azurecr.io --image <acr>.azurecr.io/hello:latest --ingress external --target-port 80",
+     "Add an allow rule: az containerapp ingress access-restriction set -n app1 -g rg-lab --rule-name office --ip-address <your-ip>/32 --action Allow",
+     "Browse to the app URL from your IP, then from a phone on mobile data.",
+     "Run az containerapp ingress access-restriction list to review the rules."
+    ],
+    "verify": "The app loads from your IP, and requests from other IPs return RBAC: Access Denied.",
+    "source": "https://learn.microsoft.com/azure/container-apps/ip-restrictions"
+   },
+   "learnModules": [
+    {
+     "title": "Plan and implement security for private access to Azure resources",
+     "url": "https://learn.microsoft.com/training/modules/security-private-access-azure-resources/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which managed identity type must ACI use to pull images from ACR?",
+     "back": "A user-assigned managed identity. System-assigned is not supported for ACI image pulls.",
+     "source": "https://learn.microsoft.com/azure/container-instances/using-azure-container-registry-mi"
+    },
+    {
+     "front": "Can a Container App have both Allow and Deny IP restriction rules?",
+     "back": "No. All rules must be the same type.",
+     "source": "https://learn.microsoft.com/azure/container-apps/ip-restrictions"
+    },
+    {
+     "front": "What outbound configuration is required for ACI container groups in a VNet?",
+     "back": "A NAT gateway. It is the only supported outbound configuration.",
+     "source": "https://learn.microsoft.com/azure/container-instances/container-instances-virtual-network-concepts"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o4-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso deploys a nightly ACI container group into a VNet subnet. The image is in a Premium ACR that has a private endpoint and public access disabled. Engineers enabled a system-assigned managed identity on the container group and granted it AcrPull, but deployment fails with an inaccessible image error.",
+     "question": "What should you do?",
+     "options": [
+      "Enable the ACR admin user",
+      "Use a user-assigned managed identity with AcrPull for the image pull",
+      "Place the ACR private endpoint in the ACI-delegated subnet",
+      "Assign a public IP to the container group"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "ACI does not support system-assigned identities for ACR image pulls, so a user-assigned identity is required. The admin user works against the hardening goal and is not needed. The ACR private endpoint must be on a different subnet than the delegated one, and placing it there would cause the deployment to fail. VNet-deployed container groups cannot use public IPs.",
+     "sources": [
+      {
+       "title": "Deploy to ACI from ACR using a managed identity",
+       "url": "https://learn.microsoft.com/azure/container-instances/using-azure-container-registry-mi"
+      },
+      {
+       "title": "ACI virtual network scenarios",
+       "url": "https://learn.microsoft.com/azure/container-instances/container-instances-virtual-network-concepts"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o4-q2",
+     "type": "hotspot",
+     "difficulty": 3,
+     "scenario": "Fabrikam needs App2 on Container Apps to be reachable from VMs in the peered hub VNet and from on-premises over ExpressRoute, but never from the internet.",
+     "question": "Select the correct configuration.",
+     "dropdowns": [
+      {
+       "label": "Environment accessibility",
+       "options": [
+        "Internal",
+        "External with public network access Enabled"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "App ingress traffic",
+       "options": [
+        "Accepting traffic from anywhere",
+        "Limited to Container Apps Environment"
+       ],
+       "answer": 0
+      }
+     ],
+     "explanation": "Internet isolation comes from creating an internal environment, which has no public endpoint. On an internal environment, \"Accepting traffic from anywhere\" publishes the app on the internal load balancer so VNet, peered and on-premises clients can reach it. \"Limited to Container Apps Environment\" would hide it from the VNet too, and those clients would get HTTP 404. An external environment with public access enabled exposes a public endpoint.",
+     "sources": [
+      {
+       "title": "Ingress in Azure Container Apps",
+       "url": "https://learn.microsoft.com/azure/container-apps/ingress-overview"
+      },
+      {
+       "title": "Networking in a Container Apps environment",
+       "url": "https://learn.microsoft.com/azure/container-apps/networking"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o4-q3",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement about Azure Container Apps IP ingress restrictions, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "If no IP restriction rules are defined, all inbound traffic is allowed.",
+       "answer": true
+      },
+      {
+       "text": "You can create one Allow rule for 10.0.0.0/24 and one Deny rule for 10.0.0.5/32 on the same app.",
+       "answer": false
+      },
+      {
+       "text": "The ipAddressRange property accepts IPv4 CIDR notation.",
+       "answer": true
+      }
+     ],
+     "explanation": "With no rules, all inbound traffic is allowed. All rules must be the same type, so Allow and Deny cannot be combined. Rules take IPv4 address ranges in CIDR notation.",
+     "sources": [
+      {
+       "title": "Set up IP ingress restrictions in Container Apps",
+       "url": "https://learn.microsoft.com/azure/container-apps/ip-restrictions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o5",
+   "summary": "Function app security combines HTTP authorization levels and access keys, positive client authentication with App Service Authentication (Easy Auth) or APIM, inbound network controls (access restrictions, private endpoints) and outbound VNet integration, plus managed identity and Key Vault references for secrets. Hosting plan support for networking features is heavily tested.",
+   "keyFacts": [
+    {
+     "fact": "HTTP trigger authorization levels are anonymous (no key), function (function or host key), and admin (master key). The master key also grants admin access to runtime REST APIs and must not be distributed.",
+     "source": "https://learn.microsoft.com/azure/azure-functions/function-keys-how-to"
+    },
+    {
+     "fact": "Access keys are shared secrets; Learn states that only positive client authentication, such as App Service Authentication, APIM or network isolation, truly secures endpoints.",
+     "source": "https://learn.microsoft.com/azure/azure-functions/security-concepts"
+    },
+    {
+     "fact": "Inbound access restrictions work on all hosting plans. Private endpoints are supported on Flex Consumption, Elastic Premium and Dedicated, but not on the Consumption plan, which also lacks outbound VNet integration.",
+     "source": "https://learn.microsoft.com/azure/azure-functions/functions-networking-options"
+    },
+    {
+     "fact": "VNet integration only affects outbound traffic. It does not give private inbound access; use a private endpoint for that.",
+     "source": "https://learn.microsoft.com/azure/azure-functions/functions-networking-options"
+    },
+    {
+     "fact": "Key Vault references use @Microsoft.KeyVault(SecretUri=...) or @Microsoft.KeyVault(VaultName=...;SecretName=...). They use the system-assigned identity by default, or keyVaultReferenceIdentity for a user-assigned one, which needs Key Vault Secrets User or Get permission on secrets.",
+     "source": "https://learn.microsoft.com/azure/app-service/app-service-key-vault-references"
+    },
+    {
+     "fact": "Setting functionsRuntimeAdminIsolationEnabled to true disables the /admin endpoints, which otherwise accept the master key.",
+     "source": "https://learn.microsoft.com/azure/azure-functions/security-concepts"
+    }
+   ],
+   "portalPath": "Function App > Settings > Authentication; Settings > Networking > Inbound traffic configuration; Settings > Identity; Settings > Environment variables",
+   "lab": {
+    "title": "Require Entra sign-in and use a Key Vault reference in a function app",
+    "steps": [
+     "Create a function app on a Flex Consumption or Premium plan in the portal.",
+     "Under Settings > Identity, turn on the system-assigned identity and save.",
+     "In your Key Vault (RBAC model), assign the function identity the Key Vault Secrets User role and create a secret named DbPassword.",
+     "Under Environment variables, add the app setting DbPassword = @Microsoft.KeyVault(VaultName=<vault>;SecretName=DbPassword) and apply it.",
+     "Under Settings > Authentication, add the Microsoft identity provider and require authentication with HTTP 401 for unauthenticated requests.",
+     "Under Networking > Public network access, choose Enabled from select virtual networks and IP addresses and add an Allow rule for your IP."
+    ],
+    "verify": "The app setting shows a green Key Vault Reference status, anonymous calls to the function return 401, and calls from other IPs return 403.",
+    "source": "https://learn.microsoft.com/azure/app-service/app-service-key-vault-references"
+   },
+   "learnModules": [
+    {
+     "title": "Plan and implement security for private access to Azure resources",
+     "url": "https://learn.microsoft.com/training/modules/security-private-access-azure-resources/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which Functions hosting plan does NOT support private endpoints for the function app?",
+     "back": "The Consumption plan. Flex Consumption, Elastic Premium and Dedicated support them.",
+     "source": "https://learn.microsoft.com/azure/azure-functions/functions-networking-options"
+    },
+    {
+     "front": "Which key is required for the admin authorization level?",
+     "back": "The master key (_master).",
+     "source": "https://learn.microsoft.com/azure/azure-functions/function-keys-how-to"
+    },
+    {
+     "front": "How long can an unversioned Key Vault reference take to pick up a rotated secret?",
+     "back": "Up to 24 hours, unless a configuration change or a refresh call forces an immediate refetch.",
+     "source": "https://learn.microsoft.com/azure/app-service/app-service-key-vault-references"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o5-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso runs FuncApp1 on the Consumption plan. Security requires that FuncApp1 be reachable only through a private IP address in VNet1.",
+     "question": "What should you do first?",
+     "options": [
+      "Add a private endpoint to FuncApp1",
+      "Move FuncApp1 to a Flex Consumption, Elastic Premium or Dedicated plan, then add a private endpoint",
+      "Enable VNet integration on FuncApp1",
+      "Set the HTTP authorization level to admin"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "The Consumption plan does not support private endpoints, so the app must move to a plan that does before a private endpoint can be added. VNet integration only controls outbound traffic and is also unavailable on Consumption. The authorization level is a key requirement, not a network control.",
+     "sources": [
+      {
+       "title": "Azure Functions networking options",
+       "url": "https://learn.microsoft.com/azure/azure-functions/functions-networking-options"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o5-q2",
+     "type": "multi",
+     "difficulty": 2,
+     "scenario": "FuncApp2 must read a database password stored in KV1 without the password appearing in code or app settings. The app setting is created during deployment, before the app has a system-assigned identity.",
+     "question": "Which two actions should you perform? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Create a user-assigned identity, grant it Key Vault Secrets User on KV1, and assign it to FuncApp2",
+      "Set keyVaultReferenceIdentity to the user-assigned identity resource ID",
+      "Store the password in the WEBSITE_AUTH_ENCRYPTION_KEY setting",
+      "Grant the Key Vault Contributor role to FuncApp2"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "When secrets must be referenced at creation time, Learn recommends a pre-authorized user-assigned identity plus setting keyVaultReferenceIdentity so Key Vault references use it. WEBSITE_AUTH_ENCRYPTION_KEY encrypts the function key store and Easy Auth tokens; it is not for app secrets. Key Vault Contributor is a management-plane role and does not grant secret read; the required role is Key Vault Secrets User or the Get secret permission.",
+     "sources": [
+      {
+       "title": "Use Key Vault references",
+       "url": "https://learn.microsoft.com/azure/app-service/app-service-key-vault-references"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o5-q3",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement about Azure Functions security, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "A function key can be sent in the x-functions-key header or the code query string.",
+       "answer": true
+      },
+      {
+       "text": "Requests to a function with authorization level function can use a host key.",
+       "answer": true
+      },
+      {
+       "text": "Enabling outbound VNet integration makes the function reachable only from the VNet.",
+       "answer": false
+      }
+     ],
+     "explanation": "Keys can be passed in the code query parameter or the x-functions-key header. Host keys work for any function at the function level. VNet integration is outbound-only and does not provide private inbound access.",
+     "sources": [
+      {
+       "title": "Azure Functions HTTP trigger",
+       "url": "https://learn.microsoft.com/azure/azure-functions/functions-bindings-http-webhook-trigger"
+      },
+      {
+       "title": "Work with access keys",
+       "url": "https://learn.microsoft.com/azure/azure-functions/function-keys-how-to"
+      },
+      {
+       "title": "Functions networking options",
+       "url": "https://learn.microsoft.com/azure/azure-functions/functions-networking-options"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o6",
+   "summary": "Logic Apps security covers who can call request-based triggers (SAS, OAuth 2.0 with Microsoft Entra ID authorization policies, Easy Auth on Standard, inbound IP restrictions, APIM fronting), how workflows authenticate outbound (managed identities), and hiding sensitive data in run history with secure inputs and outputs and content IP restrictions. Consumption and Standard differ in where settings live.",
+   "keyFacts": [
+    {
+     "fact": "Consumption request triggers accept either SAS or OAuth 2.0 with Microsoft Entra ID per call, not both at once. You can disable SAS so that only OAuth is accepted.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "fact": "An Entra authorization policy (type AAD, or AADPOP for Proof-of-Possession) must include at least the Issuer (iss) and Audience (aud) claims; each claim value is a single string.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "fact": "Standard workflows starting with the Request trigger can use Easy Auth, the App Service built-in authentication, with a managed identity. Inbound IP rules for Standard are set under Networking > Access restrictions.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "fact": "Secure Inputs and Secure Outputs hide values in run history (runtimeConfiguration.secureData.properties). Restricting content access to 0.0.0.0-0.0.0.0 blocks everyone from viewing run history inputs and outputs.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "fact": "A Consumption logic app can use the system-assigned identity or a single user-assigned identity; a Standard logic app can have the system-assigned identity and multiple user-assigned identities enabled at once.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "fact": "In the portal for Consumption apps, the Allowed inbound IP addresses option \"Only other Logic Apps\" allows only nested calls through the built-in Azure Logic Apps action; calls made with the HTTP action get 401.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    }
+   ],
+   "portalPath": "Logic app (Consumption) > Settings > Workflow settings > Access control configuration; Settings > Authorization; Logic app (Standard) > Settings > Networking > Access restrictions",
+   "lab": {
+    "title": "Restrict a Consumption logic app trigger to OAuth and hide secrets in run history",
+    "steps": [
+     "Create a Consumption logic app with a When an HTTP request is received trigger and an HTTP action.",
+     "Under Settings > Authorization, add a policy of type AAD with claims Issuer = https://sts.windows.net/<tenantId>/ and Audience = the expected audience for your logic app resource.",
+     "In the trigger code view, set operationOptions to IncludeAuthorizationHeadersInOutputs and add the trigger condition @startsWith(triggerOutputs()?['headers']?['Authorization'], 'Bearer').",
+     "On the HTTP action, open Settings > Security and turn on Secure Inputs and Secure Outputs.",
+     "Under Workflow settings > Access control configuration, set the trigger access option to Specific IP ranges and enter your IP range.",
+     "Call the trigger with a bearer token from az account get-access-token, then open the run in run history."
+    ],
+    "verify": "Calls without a bearer token show the trigger as Skipped or fail, and the HTTP action inputs and outputs appear hidden in run history.",
+    "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+   },
+   "learnModules": [
+    {
+     "title": "Introduction to Azure Logic Apps",
+     "url": "https://learn.microsoft.com/training/modules/intro-to-logic-apps/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What two claims must every Logic Apps Entra authorization policy include?",
+     "back": "Issuer (iss) and Audience (aud).",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "front": "How do you hide action data in Logic Apps run history?",
+     "back": "Turn on Secure Inputs and/or Secure Outputs in the action Settings > Security.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    },
+    {
+     "front": "Can a Consumption request trigger call use SAS and OAuth together?",
+     "back": "No. Using both schemes at once produces an error; use one, and optionally disable SAS.",
+     "source": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o6-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso has a Consumption workflow named Orders that starts with the Request trigger. Only apps that present a Microsoft Entra access token from tenant Contoso should be able to start it. Leaked trigger URLs must not work.",
+     "question": "What should you configure?",
+     "options": [
+      "Regenerate the access keys monthly",
+      "Add an Entra authorization policy with Issuer and Audience claims and disable SAS authentication",
+      "Turn on Secure Inputs on the trigger",
+      "Set Allowed inbound IP addresses to Only other Logic Apps"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "An Entra authorization policy validates token claims, and disabling SAS means the signed URL alone no longer works. Regenerating keys still leaves SAS URLs usable until the next rotation. Secure Inputs only hides data in run history. \"Only other Logic Apps\" limits callers to parent workflows that use the built-in action, which does not meet the requirement for apps with Entra tokens.",
+     "sources": [
+      {
+       "title": "Secure access and data in Logic Apps",
+       "url": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o6-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about Azure Logic Apps, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "A Standard logic app can have the system-assigned identity and several user-assigned identities enabled at the same time.",
+       "answer": true
+      },
+      {
+       "text": "A Consumption logic app can have two user-assigned identities assigned.",
+       "answer": false
+      },
+      {
+       "text": "Setting the run history content IP range to 0.0.0.0-0.0.0.0 blocks everyone from viewing inputs and outputs.",
+       "answer": true
+      }
+     ],
+     "explanation": "Standard supports the system-assigned identity plus multiple user-assigned identities, although only one is used per operation. Consumption supports the system-assigned identity or a single user-assigned identity. The 0.0.0.0-0.0.0.0 range is the documented way to block all access to run history content, which allows just-in-time unblocking by an admin.",
+     "sources": [
+      {
+       "title": "Secure access and data in Logic Apps",
+       "url": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o6-q3",
+     "type": "multi",
+     "difficulty": 3,
+     "scenario": "Fabrikam exposes a Standard logic app workflow through Azure API Management. Only the APIM instance should be able to call the Request trigger, and no shared secret should be used between APIM and the logic app.",
+     "question": "Which two actions meet the requirement? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Configure Easy Auth on the logic app with Microsoft Entra and allow only the APIM managed identity",
+      "Add an access restriction that allows only the APIM outbound IP addresses",
+      "Store the SAS signature in an APIM named value",
+      "Turn on Secure Outputs on the trigger"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Easy Auth plus the APIM managed identity gives identity-based authentication without a shared key. Restricting inbound IPs to APIM adds a network-level control that Learn recommends when APIM fronts the workflow. Passing the SAS signature still relies on a shared secret. Secure Outputs only hides run history data.",
+     "sources": [
+      {
+       "title": "Secure access and data in Logic Apps",
+       "url": "https://learn.microsoft.com/azure/logic-apps/set-up-security-permissions"
+      },
+      {
+       "title": "Authenticate with managed identities in Logic Apps",
+       "url": "https://learn.microsoft.com/azure/logic-apps/authenticate-with-managed-identity"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o7",
+   "summary": "App Service hardening includes transport security (HTTPS Only redirect, minimum inbound TLS for the site and the SCM site separately), inbound network filtering (access restrictions with priorities, service tags, HTTP header filters and an implicit deny), built-in authentication (Easy Auth), and managed identities for outbound access without secrets. Remember that private endpoint traffic bypasses access restrictions.",
+   "keyFacts": [
+    {
+     "fact": "The default minimum inbound TLS version for new apps is 1.2, and TLS 1.3 is supported. The site and the SCM (Kudu) site have independent minimum TLS settings, and deployment slots have their own.",
+     "source": "https://learn.microsoft.com/azure/app-service/tls-minimum-version"
+    },
+    {
+     "fact": "HTTPS Only redirects HTTP requests to HTTPS. Because TLS terminates at the App Service load balancers, the app receives HTTP and can check the X-Forwarded-Proto header.",
+     "source": "https://learn.microsoft.com/azure/app-service/configure-ssl-bindings"
+    },
+    {
+     "fact": "Access restriction rules are evaluated in priority order (lowest number first). When at least one rule exists and the unmatched action is not set, an implicit deny all applies. Blocked requests get HTTP 403, and an app can have up to 512 rules.",
+     "source": "https://learn.microsoft.com/azure/app-service/app-service-ip-restrictions"
+    },
+    {
+     "fact": "To accept traffic only from your own Front Door profile, allow the AzureFrontDoor.Backend service tag and add an HTTP header filter on X-Azure-FDID with your profile ID.",
+     "source": "https://learn.microsoft.com/azure/app-service/app-service-ip-restrictions"
+    },
+    {
+     "fact": "Access restrictions apply only to inbound traffic through the default (public) endpoint; traffic arriving through a private endpoint is not evaluated against them.",
+     "source": "https://learn.microsoft.com/azure/app-service/overview-access-restrictions"
+    },
+    {
+     "fact": "An app can have one system-assigned identity, deleted with the app, and multiple user-assigned identities that can be shared across resources. Managed identity configuration is per deployment slot.",
+     "source": "https://learn.microsoft.com/azure/app-service/overview-managed-identity"
+    }
+   ],
+   "portalPath": "App Service > Settings > Configuration > General settings (HTTPS Only, Minimum Inbound TLS Version); Settings > Networking > Public network access > Access restrictions; Settings > Authentication; Settings > Identity",
+   "lab": {
+    "title": "Enforce HTTPS and TLS 1.2+ and lock an app to Azure Front Door",
+    "steps": [
+     "Create a web app: az webapp create -g rg-lab -p plan-lab -n <app> --runtime \"NODE:20-lts\"",
+     "Turn on HTTPS Only and set the minimum TLS: az webapp update -g rg-lab -n <app> --https-only true and az webapp config set -g rg-lab -n <app> --min-tls-version 1.2",
+     "Check both TLS settings: az webapp show -g rg-lab -n <app> --query \"siteConfig.{siteTls:minTlsVersion, scmTls:scmMinTlsVersion}\"",
+     "Get your Front Door ID: az afd profile show -g rg-lab --profile-name <afd> --query frontDoorId",
+     "Add the rule: az webapp config access-restriction add -g rg-lab -n <app> --priority 100 --service-tag AzureFrontDoor.Backend --http-header x-azure-fdid=<id>",
+     "Turn on the system-assigned identity: az webapp identity assign -g rg-lab -n <app>"
+    ],
+    "verify": "http:// requests redirect to https://, direct browsing to <app>.azurewebsites.net returns 403, and the same app loads through the Front Door endpoint.",
+    "source": "https://learn.microsoft.com/azure/app-service/app-service-ip-restrictions"
+   },
+   "learnModules": [
+    {
+     "title": "Configure web app settings",
+     "url": "https://learn.microsoft.com/training/modules/configure-web-app-settings/"
+    },
+    {
+     "title": "Plan and implement security for public access to Azure resources",
+     "url": "https://learn.microsoft.com/training/modules/security-public-access-azure-resources/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What happens to unmatched traffic once you add a single App Service access restriction rule (with no unmatched action configured)?",
+     "back": "It is denied. An implicit deny all takes effect.",
+     "source": "https://learn.microsoft.com/azure/app-service/overview-access-restrictions"
+    },
+    {
+     "front": "Which header pins an App Service app to one specific Front Door profile?",
+     "back": "X-Azure-FDID, combined with the AzureFrontDoor.Backend service tag.",
+     "source": "https://learn.microsoft.com/azure/app-service/app-service-ip-restrictions"
+    },
+    {
+     "front": "Do access restrictions filter traffic that arrives through a private endpoint?",
+     "back": "No. Private endpoint traffic goes straight to the site; use NSGs for private endpoint restrictions.",
+     "source": "https://learn.microsoft.com/azure/app-service/overview-access-restrictions"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o7-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso set Minimum Inbound TLS Version to 1.2 on WebApp1. An auditor reports that yourapp.scm.azurewebsites.net still negotiates TLS 1.0.",
+     "question": "What should you change?",
+     "options": [
+      "Turn on HTTPS Only",
+      "Set SCM Minimum Inbound TLS Version to 1.2 or later",
+      "Add an IP-based SSL binding",
+      "Enable client certificates"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "The main site and the SCM (Kudu) site have independent minimum TLS settings, so the SCM setting must be raised separately. HTTPS Only forces a redirect from HTTP but does not set the TLS version. IP SSL bindings concern certificates for custom domains, and client certificates handle mutual authentication; neither sets the protocol floor.",
+     "sources": [
+      {
+       "title": "Manage minimum TLS versions",
+       "url": "https://learn.microsoft.com/azure/app-service/tls-minimum-version"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o7-q2",
+     "type": "order",
+     "difficulty": 2,
+     "scenario": "WebApp2 has these access restriction rules and no unmatched rule action is configured: Allow 10.1.0.0/16 priority 300; Deny 10.1.5.0/24 priority 100; Allow 192.0.2.10/32 priority 200.",
+     "question": "Arrange the rules in the order App Service evaluates them, followed by the final behavior.",
+     "items": [
+      "Deny 10.1.5.0/24 (priority 100)",
+      "Allow 192.0.2.10/32 (priority 200)",
+      "Allow 10.1.0.0/16 (priority 300)",
+      "Implicit deny all for unmatched traffic"
+     ],
+     "explanation": "Rules are evaluated from the lowest priority number. A request from 10.1.5.20 is denied by the priority 100 rule before the broader allow is reached. Because rules exist and no unmatched action is set, anything that matches no rule is denied.",
+     "sources": [
+      {
+       "title": "Set up App Service access restrictions",
+       "url": "https://learn.microsoft.com/azure/app-service/app-service-ip-restrictions"
+      },
+      {
+       "title": "App Service access restrictions overview",
+       "url": "https://learn.microsoft.com/azure/app-service/overview-access-restrictions"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o7-q3",
+     "type": "multi",
+     "difficulty": 2,
+     "scenario": "WebApp3 must read blobs in Storage1 without any stored secret, and the same identity must also be usable by WebApp4.",
+     "question": "Which two actions should you perform? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Create a user-assigned managed identity and assign it to both apps",
+      "Grant the identity the Storage Blob Data Reader role on Storage1",
+      "Enable the system-assigned identity on WebApp3 and copy it to WebApp4",
+      "Store the storage account key in an app setting"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "A user-assigned identity is a standalone resource that can be assigned to multiple apps, and it needs an RBAC data role on the storage account. A system-assigned identity is tied to a single app and cannot be shared. Storing the account key is exactly the secret the requirement prohibits.",
+     "sources": [
+      {
+       "title": "Use managed identities for App Service and Functions",
+       "url": "https://learn.microsoft.com/azure/app-service/overview-managed-identity"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o8",
+   "summary": "Azure WAF runs on Application Gateway v2 and Azure Front Door through WAF policies. You need to know the modes (Detection logs only and is the default, Prevention blocks), Microsoft-managed rule sets (DRS 2.x and CRS 3.2) with anomaly scoring, custom rules (evaluated first; match or rate-limit; geo and IP filters), and tuning through exclusions, per-rule actions and exceptions. Tier support (Front Door managed rules need Premium or Classic) is a common trap.",
+   "keyFacts": [
+    {
+     "fact": "Detection mode logs threats without blocking; Prevention mode blocks and returns 403. Learn recommends running a new WAF in Detection first to tune exclusions and custom rules.",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview"
+    },
+    {
+     "fact": "With CRS or DRS 2.1 and later, anomaly scoring is used: Critical=5, Error=4, Warning=3, Notice=2, and a score of 5 or more blocks in Prevention mode. The final block shows as rule 949110, while the contributing rules show \"Matched\".",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules"
+    },
+    {
+     "fact": "Custom rules are processed before managed rules, ordered by priority (a lower number runs first). A matching Allow custom rule skips DRS, CRS and Bot Manager evaluation but is still evaluated by the HTTP DDoS ruleset (preview).",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions"
+    },
+    {
+     "fact": "Exclusions remove a specific request attribute (for example, a header carrying Entra tokens) from inspection while the rest of the request is still evaluated. On Application Gateway they can be global or per rule.",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-configuration"
+    },
+    {
+     "fact": "On Front Door, managed rule sets are supported only in Premium and Front Door (classic). Custom rules, including rate limiting over a one-minute or five-minute window and geo-filtering, are available in Standard and Premium.",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview"
+    },
+    {
+     "fact": "Front Door exclusions can be scoped to a rule set, a rule group or a single rule, and Learn recommends per-rule exclusions to keep them as narrow as possible.",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-exclusion"
+    }
+   ],
+   "portalPath": "Web Application Firewall policies > <policy> > Policy settings (mode) / Managed rules / Custom rules / Exclusions",
+   "lab": {
+    "title": "Create a Front Door WAF policy with a rate-limit custom rule",
+    "steps": [
+     "In the portal, create a Web Application Firewall policy for Azure Front Door with the Premium tier, and keep the mode at Detection.",
+     "On Managed rules, confirm that the Default rule set is assigned.",
+     "Add a custom rule of type Rate limit at priority 10 with a threshold of 100 requests per 1 minute, the condition RequestUri contains /login, and the action Block.",
+     "Add a custom geo-match rule that blocks one country you do not serve.",
+     "Associate the policy with a Front Door endpoint domain, send repeated requests to /login, and review the WAF logs.",
+     "Switch the policy mode to Prevention and repeat the test."
+    ],
+    "verify": "In Detection mode the logs show matched rules without blocking. In Prevention mode, excess /login requests from your IP are blocked until the next window and geo-blocked requests are blocked.",
+    "source": "https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-rate-limit"
+   },
+   "learnModules": [
+    {
+     "title": "Introduction to Azure Web Application Firewall",
+     "url": "https://learn.microsoft.com/training/modules/introduction-azure-web-application-firewall/"
+    },
+    {
+     "title": "Plan and implement security for public access to Azure resources",
+     "url": "https://learn.microsoft.com/training/modules/security-public-access-azure-resources/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What is the default mode of a new Azure WAF policy?",
+     "back": "Detection. It logs matches but does not block.",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-create-portal"
+    },
+    {
+     "front": "What anomaly score triggers a block in Prevention mode?",
+     "back": "5 or greater; a single Critical rule match is enough.",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules"
+    },
+    {
+     "front": "Which runs first: custom rules or managed rules?",
+     "back": "Custom rules, in priority order (a lower number runs first).",
+     "source": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o8-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso applies a Front Door WAF policy in Prevention mode. Logins fail because rule 942430 (SQL injection) matches the value of the custom header X-Session-Token, which contains random characters. All other inspection must remain in place.",
+     "question": "What should you configure?",
+     "options": [
+      "Switch the policy to Detection mode",
+      "Add a per-rule exclusion for request header X-Session-Token on rule 942430",
+      "Add a custom rule with action Allow for all traffic",
+      "Disable the SQL injection rule group"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "An exclusion skips only the named attribute for the scoped rule, which is the narrowest fix that Learn recommends. Detection mode stops all blocking. An Allow custom rule bypasses all managed rules for the matched traffic. Disabling the whole rule group removes SQL injection protection for every field.",
+     "sources": [
+      {
+       "title": "WAF on Front Door exclusion lists",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-exclusion"
+      },
+      {
+       "title": "Application Gateway WAF exceptions list",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-exceptions"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o8-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about Azure WAF, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "A single Warning-severity rule match blocks a request in Prevention mode with DRS 2.1.",
+       "answer": false
+      },
+      {
+       "text": "Managed rule sets are available on Azure Front Door Standard tier WAF policies.",
+       "answer": false
+      },
+      {
+       "text": "A custom rule that matches and blocks a request stops evaluation of the managed rule set for that request.",
+       "answer": true
+      }
+     ],
+     "explanation": "A Warning adds 3 to the anomaly score, below the threshold of 5, so it does not block on its own. Managed rules are supported only in Front Door Premium and Classic. Custom rules run first, and when one matches, its action is applied without processing later rules, including the CRS or DRS.",
+     "sources": [
+      {
+       "title": "CRS and DRS rule groups",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-crs-rulegroups-rules"
+      },
+      {
+       "title": "Create a WAF policy on Front Door",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-create-portal"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o8-q3",
+     "type": "hotspot",
+     "difficulty": 3,
+     "scenario": "Fabrikam is deploying a new WAF on Application Gateway v2 for a legacy app with unknown false positives. It also needs to throttle each client IP that calls /api/search to 200 requests per minute on Front Door.",
+     "question": "Select the correct configuration for each requirement.",
+     "dropdowns": [
+      {
+       "label": "Initial Application Gateway WAF mode",
+       "options": [
+        "Detection",
+        "Prevention"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Recommended managed rule set for new deployments",
+       "options": [
+        "DRS 2.2",
+        "CRS 3.2"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Front Door control for /api/search",
+       "options": [
+        "Rate limit custom rule",
+        "Exclusion list",
+        "Bot Manager rule set"
+       ],
+       "answer": 0
+      }
+     ],
+     "explanation": "Learn advises starting in Detection to gather logs and tune before blocking. DRS 2.2 is the recommended rule set for new deployments; CRS 3.2 is still supported but older. Per-IP throttling is done with a rate-limit custom rule; exclusions skip inspection of attributes, and the bot rule set classifies bots rather than throttling clients.",
+     "sources": [
+      {
+       "title": "WAF on Application Gateway",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/ag/ag-overview"
+      },
+      {
+       "title": "Application Gateway WAF FAQ",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/ag/application-gateway-waf-faq"
+      },
+      {
+       "title": "Azure WAF on Azure Front Door",
+       "url": "https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s3o9",
+   "summary": "API Management protects back-end APIs by enforcing policies in the gateway: token validation (validate-jwt for any IdP, validate-azure-ad-token for Entra), throttling (rate-limit, rate-limit-by-key, quota, quota-by-key), caller IP filtering (ip-filter), mTLS validation (validate-client-certificate), and back-end authentication with the APIM managed identity (authentication-managed-identity). Tier availability and the difference between rate limits and quotas are frequent exam points.",
+   "keyFacts": [
+    {
+     "fact": "validate-jwt validates JWTs from any identity provider; validate-azure-ad-token is the specialized policy for tokens issued by Microsoft Entra. Both are available in all tiers.",
+     "source": "https://learn.microsoft.com/azure/api-management/validate-jwt-policy"
+    },
+    {
+     "fact": "rate-limit-by-key and quota-by-key use a custom key, such as an IP address or JWT subject, from a policy expression, and they are not available in the Consumption tier. Exceeding a limit returns 429 Too Many Requests.",
+     "source": "https://learn.microsoft.com/azure/api-management/api-management-sample-flexible-throttling"
+    },
+    {
+     "fact": "Rate-limit counters are per gateway, so each region enforces them separately, while quota counters are global for the whole API Management instance.",
+     "source": "https://learn.microsoft.com/azure/api-management/api-management-sample-flexible-throttling"
+    },
+    {
+     "fact": "ip-filter uses action allow or forbid with address or address-range elements and works in all tiers. With allow, requests that match no listed address are denied; with forbid, unmatched requests are allowed.",
+     "source": "https://learn.microsoft.com/azure/api-management/ip-filter-policy"
+    },
+    {
+     "fact": "validate-client-certificate checks a client certificate against rules (trust, revocation, validity dates) and up to 10 identities (thumbprint, subject, issuer). Classic tiers need Negotiate client certificate, and Consumption and v2 tiers need Request client certificate.",
+     "source": "https://learn.microsoft.com/azure/api-management/api-management-howto-mutual-certificates-for-clients"
+    },
+    {
+     "fact": "authentication-managed-identity gets an Entra token for the resource attribute and sets it as a Bearer Authorization header. It uses the system-assigned identity unless client-id names a user-assigned one, and it caches the token until expiry.",
+     "source": "https://learn.microsoft.com/azure/api-management/authentication-managed-identity-policy"
+    }
+   ],
+   "portalPath": "API Management > APIs > <API> > Design > Inbound processing > Policy code editor (</>)",
+   "lab": {
+    "title": "Protect an API with token validation, throttling and managed identity back-end auth",
+    "steps": [
+     "Create an API Management instance in the Developer or Basic v2 tier and import a sample API.",
+     "Enable the system-assigned identity under Security > Managed identities.",
+     "In the API inbound policy, add <validate-azure-ad-token tenant-id=\"{{tenant}}\"><client-application-ids><application-id>{{clientApp}}</application-id></client-application-ids></validate-azure-ad-token>",
+     "Add <rate-limit-by-key calls=\"10\" renewal-period=\"60\" counter-key=\"@(context.Request.IpAddress)\" /> and <ip-filter action=\"allow\"><address-range from=\"203.0.113.0\" to=\"203.0.113.255\" /></ip-filter>",
+     "Add <authentication-managed-identity resource=\"https://management.azure.com/\" /> to call an ARM-backed endpoint.",
+     "Test from the Test tab and with curl, both with and without a valid token."
+    ],
+    "verify": "Calls without a token return 401, an 11th call within 60 seconds returns 429, calls from IPs outside the range return 403, and the back end receives a Bearer token.",
+    "source": "https://learn.microsoft.com/azure/api-management/transform-api"
+   },
+   "learnModules": [
+    {
+     "title": "Protect your APIs on Azure API Management",
+     "url": "https://learn.microsoft.com/training/modules/protect-apis-on-api-management/"
+    },
+    {
+     "title": "Control access to your APIs with Azure API Management",
+     "url": "https://learn.microsoft.com/training/modules/control-authentication-with-apim/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which API Management policy validates Microsoft Entra tokens specifically?",
+     "back": "validate-azure-ad-token. validate-jwt is the generic one for other identity providers.",
+     "source": "https://learn.microsoft.com/azure/api-management/validate-azure-ad-token-policy"
+    },
+    {
+     "front": "Are rate-limit-by-key and quota-by-key available in the Consumption tier?",
+     "back": "No.",
+     "source": "https://learn.microsoft.com/azure/api-management/api-management-sample-flexible-throttling"
+    },
+    {
+     "front": "If client-id is omitted from authentication-managed-identity, which identity is used?",
+     "back": "The system-assigned managed identity.",
+     "source": "https://learn.microsoft.com/azure/api-management/authentication-managed-identity-policy"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s3o9-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso runs APIM1 in the Consumption tier. Each authenticated user must be limited to 20 calls per minute, keyed on the JWT subject.",
+     "question": "What should you do?",
+     "options": [
+      "Add rate-limit-by-key with counter-key set to the JWT subject",
+      "Upgrade APIM1 to a tier that supports rate-limit-by-key, then configure it",
+      "Use the quota policy with renewal-period 60",
+      "Use ip-filter to forbid frequent callers"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "rate-limit-by-key is not available in the Consumption tier, so the instance must move to a supported tier first. The quota policy counts per subscription, not per custom key, and is meant for longer-term volume. ip-filter allows or blocks by IP and does not count calls.",
+     "sources": [
+      {
+       "title": "Advanced request throttling",
+       "url": "https://learn.microsoft.com/azure/api-management/api-management-sample-flexible-throttling"
+      },
+      {
+       "title": "Limit call rate by key",
+       "url": "https://learn.microsoft.com/azure/api-management/rate-limit-by-key-policy"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o9-q2",
+     "type": "multi",
+     "difficulty": 3,
+     "scenario": "APIM2 fronts an internal API protected by Microsoft Entra ID. Callers are partner services that present client certificates issued by Fabrikam CA. The back end must receive an Entra token for the APIM instance, without stored secrets.",
+     "question": "Which two policies should you add to the inbound section? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "validate-client-certificate with an identity matching the Fabrikam CA issuer",
+      "authentication-managed-identity with resource set to the back-end application ID",
+      "authentication-basic with a named value",
+      "authentication-certificate referencing the partner certificate"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "validate-client-certificate checks the client-presented certificate, including the issuer, for client-to-gateway mTLS. authentication-managed-identity gets an Entra token for the back-end app and sends it as a Bearer header, with no secrets stored. Basic authentication uses stored credentials and is discouraged. authentication-certificate authenticates APIM to the back end with a certificate APIM holds; it does not validate callers.",
+     "sources": [
+      {
+       "title": "Validate client certificate",
+       "url": "https://learn.microsoft.com/azure/api-management/validate-client-certificate-policy"
+      },
+      {
+       "title": "Authenticate with managed identity",
+       "url": "https://learn.microsoft.com/azure/api-management/authentication-managed-identity-policy"
+      }
+     ]
+    },
+    {
+     "id": "d3s3o9-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "APIM3 is deployed in two regions. The API has rate-limit-by-key calls=\"100\" renewal-period=\"60\" and quota-by-key calls=\"10000\" renewal-period=\"86400\", both keyed by IP.",
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "A client could make up to about 100 calls per minute in each region.",
+       "answer": true
+      },
+      {
+       "text": "The daily quota of 10,000 calls is counted separately in each region.",
+       "answer": false
+      },
+      {
+       "text": "A client that exceeds the rate limit receives HTTP 429.",
+       "answer": true
+      }
+     ],
+     "explanation": "Rate-limit counters are kept per gateway, so each region enforces its own limit. Quota counters are global across the instance. Exceeding a rate limit returns 429 Too Many Requests.",
+     "sources": [
+      {
+       "title": "Advanced request throttling",
+       "url": "https://learn.microsoft.com/azure/api-management/api-management-sample-flexible-throttling"
+      },
+      {
+       "title": "Limit call rate by key",
+       "url": "https://learn.microsoft.com/azure/api-management/rate-limit-by-key-policy"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

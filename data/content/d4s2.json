@@ -1,0 +1,1555 @@
+{
+ "sectionId": "d4s2",
+ "objectives": [
+  {
+   "objectiveId": "d4s2o1",
+   "summary": "Microsoft Sentinel runs on top of a Log Analytics workspace: you create (or pick) a workspace, add Sentinel to it, then connect it to the Microsoft Defender portal for unified security operations. The Defender portal uses one primary workspace (which receives Defender XDR incidents/alerts) plus any number of secondary workspaces. Onboarding to the Sentinel data lake is a separate, one-time, tenant-level step that requires the workspace to be connected as primary. Sentinel in the Azure portal is being retired, so new deployments should be planned around the Defender portal.",
+   "keyFacts": [
+    {
+     "fact": "Enabling Microsoft Sentinel requires Contributor on the subscription that holds the workspace; default workspaces created by Defender for Cloud can't host Sentinel, and a Sentinel workspace can't later be moved to another resource group or subscription.",
+     "source": "https://learn.microsoft.com/azure/sentinel/quickstart-onboard"
+    },
+    {
+     "fact": "New customers who hold subscription Owner or User Access Administrator are automatically onboarded to the Defender portal and use Sentinel there only.",
+     "source": "https://learn.microsoft.com/azure/sentinel/quickstart-onboard"
+    },
+    {
+     "fact": "The Defender portal supports one primary and unlimited secondary Sentinel workspaces per tenant; the Defender XDR incidents/alerts connector attaches only to the primary, and switching primary moves that connector automatically.",
+     "source": "https://learn.microsoft.com/azure/sentinel/workspaces-defender-portal"
+    },
+    {
+     "fact": "Onboarding a workspace to the Defender portal requires an unconditional Owner assignment at subscription scope (or User Access Administrator plus Sentinel Contributor); with more than one Sentinel workspace you also need at least Security Administrator in Entra ID.",
+     "source": "https://learn.microsoft.com/azure/sentinel/microsoft-sentinel-onboard"
+    },
+    {
+     "fact": "Data lake onboarding is a one-time tenant setup (up to about 60 minutes) started from System > Settings > Microsoft Sentinel > Data lake; the lake lives in the primary workspace's region, and only same-region connected workspaces are attached. Entra Security Administrator or Global Administrator is required.",
+     "source": "https://learn.microsoft.com/azure/sentinel/datalake/sentinel-lake-onboarding"
+    },
+    {
+     "fact": "After March 31, 2027, Sentinel is supported only in the Defender portal; Workspace Manager isn't available there, so use repositories (preview) or multitenant management to distribute content.",
+     "source": "https://learn.microsoft.com/azure/sentinel/move-to-defender"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > System > Settings > Microsoft Sentinel > SIEM workspaces (Connect workspace / Set as primary); Data lake > Start setup",
+   "lab": {
+    "title": "Create a Sentinel workspace and connect it to the Defender portal",
+    "steps": [
+     "In the Azure portal, search for Microsoft Sentinel and select Create > Create a new workspace; create resource group RG-SOC and workspace LAW-Contoso-SOC in a data-lake-supported region (for example East US 2).",
+     "Back on the Microsoft Sentinel page select Create, choose LAW-Contoso-SOC and select Add.",
+     "Sign in to https://security.microsoft.com, go to System > Settings > Microsoft Sentinel > SIEM workspaces.",
+     "Select LAW-Contoso-SOC > Connect workspace and set it as Primary; read the product-change notice and confirm.",
+     "(Optional, if you have Security Administrator) Go to System > Settings > Microsoft Sentinel > Data lake > Start setup, choose the subscription and resource group for billing, then select Set up data lake."
+    ],
+    "verify": "SIEM workspaces shows the workspace as Connected and Primary, and the Microsoft Sentinel node appears in the Defender portal navigation. If you ran data lake setup, the Data lake settings page shows your subscription/resource group once setup completes.",
+    "source": "https://learn.microsoft.com/azure/sentinel/datalake/sentinel-lake-onboarding"
+   },
+   "learnModules": [
+    {
+     "title": "Create and manage Microsoft Sentinel workspaces",
+     "url": "https://learn.microsoft.com/training/modules/create-manage-azure-sentinel-workspaces/"
+    },
+    {
+     "title": "Configure SIEM security operations using Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/configure-siem-security-operations-using-microsoft-sentinel/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "How many primary Sentinel workspaces can a tenant have in the Defender portal?",
+     "back": "One primary (receives Defender XDR incidents/alerts) and an unlimited number of secondary workspaces.",
+     "source": "https://learn.microsoft.com/azure/sentinel/workspaces-defender-portal"
+    },
+    {
+     "front": "Can you move a Sentinel-enabled workspace to another subscription?",
+     "back": "No. Once Sentinel is deployed on a workspace, moving it to another resource group or subscription isn't supported.",
+     "source": "https://learn.microsoft.com/azure/sentinel/quickstart-onboard"
+    },
+    {
+     "front": "Which region does the Sentinel data lake use?",
+     "back": "The same region as the primary Sentinel workspace; only connected workspaces in that region are attached, and the region can't be changed afterward from the Defender portal.",
+     "source": "https://learn.microsoft.com/azure/sentinel/isv/sentinel-data-lake-onboarding"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o1-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso has three Sentinel workspaces: LAW-EU (West Europe), LAW-US (East US 2) and LAW-APAC (Australia East). All three are connected to the Defender portal. Defender XDR incidents should be correlated with Sentinel alerts from LAW-US.",
+     "question": "What should you do?",
+     "options": [
+      "Enable the Defender XDR connector in all three workspaces",
+      "Set LAW-US as the primary workspace",
+      "Use Workspace Manager to make LAW-US the parent workspace",
+      "Move LAW-US into the same resource group as the Defender XDR tenant"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Defender XDR incidents/alerts flow only to the primary workspace, and alerts from the primary are correlated with XDR data; setting LAW-US as primary moves the connector there automatically. Enabling the connector everywhere is wrong because the XDR incidents connector binds to the primary only. Workspace Manager isn't available in the Defender portal and has no 'parent' concept for XDR correlation. Resource group placement has no effect on which workspace receives XDR incidents.",
+     "sources": [
+      {
+       "title": "Multiple Microsoft Sentinel workspaces in the Defender portal",
+       "url": "https://learn.microsoft.com/azure/sentinel/workspaces-defender-portal"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o1-q2",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "You can install Microsoft Sentinel on the default workspace that Microsoft Defender for Cloud created.",
+       "answer": false
+      },
+      {
+       "text": "To enable Microsoft Sentinel you need Contributor permissions on the subscription that contains the workspace.",
+       "answer": true
+      },
+      {
+       "text": "Workspaces created after data lake onboarding are automatically added to the data lake.",
+       "answer": false
+      }
+     ],
+     "explanation": "Defender for Cloud default workspaces aren't listed and can't host Sentinel. Contributor on the subscription is the documented prerequisite to enable Sentinel. Workspaces created after data lake onboarding aren't added automatically; Learn says to open a support ticket to add them.",
+     "sources": [
+      {
+       "title": "Onboard Microsoft Sentinel to a Log Analytics workspace",
+       "url": "https://learn.microsoft.com/azure/sentinel/quickstart-onboard"
+      },
+      {
+       "title": "Onboard to Microsoft Sentinel data lake from the Defender portal",
+       "url": "https://learn.microsoft.com/azure/sentinel/datalake/sentinel-lake-onboard-defender"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o1-q3",
+     "type": "order",
+     "difficulty": 2,
+     "scenario": "Fabrikam is a new customer that wants to use the Sentinel data lake.",
+     "question": "Put the steps in the correct order.",
+     "items": [
+      "Create a Log Analytics workspace in a data-lake-supported region",
+      "Add Microsoft Sentinel to the workspace",
+      "In the Defender portal, connect the workspace and set it as Primary",
+      "Start setup from Settings > Microsoft Sentinel > Data lake and pick the billing subscription and resource group"
+     ],
+     "explanation": "Data lake onboarding requires a Sentinel-enabled workspace that is already connected to the Defender portal as primary, and the lake is provisioned in that workspace's region, so the region choice comes first. Starting data lake setup before connecting a primary workspace fails the prerequisite.",
+     "sources": [
+      {
+       "title": "How to onboard to the Microsoft Sentinel data lake",
+       "url": "https://learn.microsoft.com/azure/sentinel/datalake/sentinel-lake-onboarding"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o2",
+   "summary": "Sentinel SIEM access uses Azure RBAC built-in roles (Reader, Responder, Contributor, Playbook Operator, Automation Contributor), ideally assigned at the resource group that holds the workspace. Playbooks are Logic Apps, so creating/editing them needs Logic App Contributor, and the Sentinel service account needs Automation Contributor on the playbook resource group before automation rules can run them. Data lake access is governed by Microsoft Entra ID roles or Defender unified RBAC.",
+   "keyFacts": [
+    {
+     "fact": "Reader views data, incidents and workbooks; Responder adds incident management; Contributor adds installing/updating solutions and creating/editing resources such as analytics rules.",
+     "source": "https://learn.microsoft.com/azure/sentinel/roles"
+    },
+    {
+     "fact": "Playbook Operator lets a user list, view and manually run playbooks; Logic App Contributor is needed to create or edit playbooks.",
+     "source": "https://learn.microsoft.com/azure/sentinel/roles"
+    },
+    {
+     "fact": "Microsoft Sentinel Automation Contributor is assigned to the Sentinel service account (not users) on the playbook resource group so automation rules can run playbooks; granting it requires Owner or User Access Administrator.",
+     "source": "https://learn.microsoft.com/azure/sentinel/automation/automate-responses-with-playbooks"
+    },
+    {
+     "fact": "Microsoft recommends assigning Sentinel roles at the resource group containing the workspace; if you assign at the workspace instead, you must also assign them on the SecurityInsights solution resource.",
+     "source": "https://learn.microsoft.com/azure/sentinel/roles"
+    },
+    {
+     "fact": "Creating or deleting workbooks needs Workbook Contributor in addition to a Sentinel role; guest users who assign incidents need Directory Reader plus Responder.",
+     "source": "https://learn.microsoft.com/azure/sentinel/roles"
+    },
+    {
+     "fact": "Playbook Operator, Automation Contributor and Workbook Contributor aren't available in Defender unified RBAC and must still be managed in the Azure portal.",
+     "source": "https://learn.microsoft.com/defender-xdr/compare-rbac-roles"
+    }
+   ],
+   "portalPath": "Azure portal > Resource groups > (Sentinel RG) > Access control (IAM) > Add role assignment",
+   "lab": {
+    "title": "Assign least-privilege Sentinel roles to an analyst and grant playbook permissions",
+    "steps": [
+     "In the Azure portal open resource group RG-SOC > Access control (IAM) > Add > Add role assignment.",
+     "Assign Microsoft Sentinel Responder to user Analyst1.",
+     "Repeat and assign Microsoft Sentinel Playbook Operator to Analyst1 on the resource group that contains the playbooks.",
+     "In Microsoft Sentinel select Settings > Settings > Playbook permissions > Configure permissions, mark RG-SOC and select Apply (requires Owner on RG-SOC). This grants the Sentinel service account Microsoft Sentinel Automation Contributor on that resource group."
+    ],
+    "verify": "Sign in as Analyst1: incidents can be assigned and closed, and Run playbook shows the playbook as runnable (no 'Missing permissions' or 'Grant permission' status).",
+    "source": "https://learn.microsoft.com/azure/sentinel/automation/run-playbooks"
+   },
+   "learnModules": [
+    {
+     "title": "Create and manage Microsoft Sentinel workspaces",
+     "url": "https://learn.microsoft.com/training/modules/create-manage-azure-sentinel-workspaces/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which Sentinel role lets an analyst manage incidents but not create analytics rules?",
+     "back": "Microsoft Sentinel Responder.",
+     "source": "https://learn.microsoft.com/azure/sentinel/roles"
+    },
+    {
+     "front": "Who is the Microsoft Sentinel Automation Contributor role assigned to?",
+     "back": "The Microsoft Sentinel service account (Azure Security Insights), on the playbook resource group, so automation rules can run playbooks. It isn't used for user accounts.",
+     "source": "https://learn.microsoft.com/azure/sentinel/roles"
+    },
+    {
+     "front": "What role is needed to install a content hub solution?",
+     "back": "Microsoft Sentinel Contributor at the resource group level.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o2-q1",
+     "type": "hotspot",
+     "difficulty": 2,
+     "scenario": "At Contoso, Tier-1 analyst Analyst1 must triage incidents and manually run existing playbooks. Engineer Eng1 must build new Logic Apps playbooks.",
+     "question": "Select the least-privilege role for each requirement.",
+     "dropdowns": [
+      {
+       "label": "Analyst1 - manage incidents",
+       "options": [
+        "Microsoft Sentinel Reader",
+        "Microsoft Sentinel Responder",
+        "Microsoft Sentinel Contributor"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Analyst1 - run playbooks manually",
+       "options": [
+        "Microsoft Sentinel Playbook Operator",
+        "Microsoft Sentinel Automation Contributor",
+        "Logic App Contributor"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Eng1 - create/edit playbooks",
+       "options": [
+        "Microsoft Sentinel Playbook Operator",
+        "Logic App Contributor",
+        "Microsoft Sentinel Responder"
+       ],
+       "answer": 1
+      }
+     ],
+     "explanation": "Responder manages incidents; Reader can only view and Contributor adds unnecessary content/rule authoring rights. Playbook Operator runs playbooks manually; Automation Contributor is for the Sentinel service account only, and Logic App Contributor would also allow editing. Creating/editing playbooks needs Logic App Contributor; Playbook Operator and Responder can't author Logic Apps.",
+     "sources": [
+      {
+       "title": "Roles and permissions in the Microsoft Sentinel platform",
+       "url": "https://learn.microsoft.com/azure/sentinel/roles"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o2-q2",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "An automation rule's Run playbook action shows playbook PB-Isolate as unavailable (greyed out). PB-Isolate is in resource group RG-Playbooks.",
+     "question": "What must be configured?",
+     "options": [
+      "Assign the rule author Microsoft Sentinel Contributor on RG-Playbooks",
+      "Grant the Microsoft Sentinel service account the Microsoft Sentinel Automation Contributor role on RG-Playbooks",
+      "Assign Logic App Operator to the rule author on the workspace",
+      "Convert PB-Isolate from a Standard to a Consumption logic app"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Greyed-out playbooks mean Sentinel lacks permission on the playbook's resource group; the fix is Automation Contributor for the Sentinel service account (done via Manage playbook permissions, which requires Owner). Giving the author Sentinel Contributor doesn't grant the service account rights. Logic App Operator only enables/disables logic apps. Both Consumption and Standard logic apps can be run from automation rules, so converting doesn't help.",
+     "sources": [
+      {
+       "title": "Automate threat response in Microsoft Sentinel with automation rules",
+       "url": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+      },
+      {
+       "title": "Automate threat response with playbooks in Microsoft Sentinel",
+       "url": "https://learn.microsoft.com/azure/sentinel/automation/automate-responses-with-playbooks"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o2-q3",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "Which Sentinel-related roles must still be managed in the Azure portal because they aren't available in Defender unified RBAC? Each correct answer presents part of the solution. Choose three.",
+     "options": [
+      "Microsoft Sentinel Playbook Operator",
+      "Microsoft Sentinel Automation Contributor",
+      "Workbook Contributor",
+      "Microsoft Sentinel Reader",
+      "Microsoft Sentinel Responder"
+     ],
+     "answer": [
+      0,
+      1,
+      2
+     ],
+     "explanation": "Learn lists Playbook Operator, Automation Contributor and Workbook Contributor as not available in unified RBAC. Sentinel Reader and Responder map to Defender Unified RBAC Reader and Responder permissions, so they do have unified RBAC equivalents.",
+     "sources": [
+      {
+       "title": "Map existing RBAC permissions to Microsoft Defender unified RBAC permissions",
+       "url": "https://learn.microsoft.com/defender-xdr/compare-rbac-roles"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o3",
+   "summary": "The Content hub is the central place to discover, install and update packaged Sentinel solutions (data connectors, analytics rules, workbooks, playbooks, parsers) and standalone content. Solutions are delivered through Azure Marketplace and each item shows its support model (Microsoft, partner, community). Installing a solution often just makes a data connector available; you still configure the connector afterward.",
+   "keyFacts": [
+    {
+     "fact": "Installing, updating or deleting standalone content or solutions in Content hub requires Microsoft Sentinel Contributor at the resource group level.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+    },
+    {
+     "fact": "Solutions that rely on AMA-based CEF, Syslog or custom-log connectors have dependencies; use 'Install with dependencies' so the required connectors are installed too.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+    },
+    {
+     "fact": "Solutions show an Update status when a newer version exists; solutions are updated from Content hub while standalone content updates automatically. Custom content updates are managed from Repositories.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions"
+    },
+    {
+     "fact": "The install wizard ends with 'Download a template for automation', letting you deploy the solution as code.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+    },
+    {
+     "fact": "In an ISOC workspace in the Defender portal, Content hub (preview) installs only the data connectors from a solution; other content types aren't installed during the preview.",
+     "source": "https://learn.microsoft.com/defender-xdr/content-hub-defender"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Microsoft Sentinel > Content management > Content hub",
+   "lab": {
+    "title": "Install the Azure Activity solution and enable a rule template",
+    "steps": [
+     "In the Defender portal open Microsoft Sentinel > Content management > Content hub.",
+     "Search for Azure Activity, select the solution and select Install.",
+     "After install, open the solution, select Manage, and find the 'Suspicious Resource deployment' analytics rule template.",
+     "Select Create rule, set Status to Enabled, leave defaults and select Create."
+    ],
+    "verify": "Content hub shows Azure Activity as Installed, and Configuration > Analytics lists the new active rule.",
+    "source": "https://learn.microsoft.com/azure/sentinel/quickstart-onboard"
+   },
+   "learnModules": [
+    {
+     "title": "Connect data to Microsoft Sentinel using data connectors",
+     "url": "https://learn.microsoft.com/training/modules/connect-data-to-azure-sentinel-with-data-connectors/"
+    },
+    {
+     "title": "Configure SIEM security operations using Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/configure-siem-security-operations-using-microsoft-sentinel/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What does 'Install with dependencies' do?",
+     "back": "Installs the data connectors a solution depends on (for example CEF/Syslog/custom logs via AMA) along with the solution.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+    },
+    {
+     "front": "Where are updates for custom (non-OOTB) content managed?",
+     "back": "On the Repositories page (source control), not in Content hub.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions"
+    },
+    {
+     "front": "What powers the Sentinel solutions experience?",
+     "back": "Azure Marketplace; solutions are packaged content and integrations.",
+     "source": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o3-q1",
+     "type": "single",
+     "difficulty": 1,
+     "question": "A user assigned Microsoft Sentinel Responder can't install a Content hub solution. Which role should you assign at the resource group level?",
+     "options": [
+      "Microsoft Sentinel Reader",
+      "Microsoft Sentinel Contributor",
+      "Microsoft Sentinel Automation Contributor",
+      "Log Analytics Reader"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Content hub install/update/delete requires Microsoft Sentinel Contributor at the resource group. Reader and Log Analytics Reader are read-only. Automation Contributor is a service-account role for running playbooks and doesn't manage content.",
+     "sources": [
+      {
+       "title": "Discover and manage Microsoft Sentinel out-of-the-box content",
+       "url": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o3-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "Standalone Content hub content updates automatically, while solutions must be updated.",
+       "answer": true
+      },
+      {
+       "text": "In an ISOC workspace Content hub preview, installing a solution also installs its analytics rules and workbooks.",
+       "answer": false
+      },
+      {
+       "text": "The solution install wizard can produce a template so the solution can be deployed as code.",
+       "answer": true
+      }
+     ],
+     "explanation": "Learn states solutions show an Update status and are updated, while standalone content updates automatically. In the ISOC preview only the data connectors from a solution are installed. The Review + create tab offers 'Download a template for automation'.",
+     "sources": [
+      {
+       "title": "Discover and manage Microsoft Sentinel out-of-the-box content",
+       "url": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+      },
+      {
+       "title": "Use Content hub with ISOC in Microsoft Defender (preview)",
+       "url": "https://learn.microsoft.com/defender-xdr/content-hub-defender"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o3-q3",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "You install a firewall vendor solution that ingests CEF via the Azure Monitor Agent, but the CEF via AMA connector doesn't appear afterward.",
+     "question": "What should you have done?",
+     "options": [
+      "Installed the solution with dependencies",
+      "Assigned the Automation Contributor role",
+      "Enabled the Defender XDR connector",
+      "Converted CommonSecurityLog to the Auxiliary plan"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Solutions built on AMA CEF/Syslog/custom-log connectors list those connectors as dependencies; 'Install with dependencies' installs them. Automation Contributor relates to playbooks. The Defender XDR connector is unrelated to CEF. Changing a table plan doesn't install a connector.",
+     "sources": [
+      {
+       "title": "Discover and manage Microsoft Sentinel out-of-the-box content",
+       "url": "https://learn.microsoft.com/azure/sentinel/sentinel-solutions-deploy"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o4",
+   "summary": "Microsoft-service connectors fall into API-based, diagnostic-settings-based (some managed by Azure Policy) and agent-based types. Azure Activity uses the diagnostic settings pipeline through an Azure Policy assignment; Entra ID sends sign-in, audit and risk logs; Defender for Cloud has a legacy subscription-based connector and a tenant-based connector (preview) that aligns with Defender XDR incident integration. Several of these sources, such as Azure Activity and Defender alerts, are free to ingest.",
+   "keyFacts": [
+    {
+     "fact": "Diagnostic-settings connectors managed by Azure Policy need Owner on the policy assignment scope; add a remediation task to apply the policy to existing resources, since by default it applies to new resources.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-diagnostic-setting-based"
+    },
+    {
+     "fact": "Policy-managed diagnostic connectors show Connected only if data arrived in the past 14 days.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-diagnostic-setting-based"
+    },
+    {
+     "fact": "The Entra ID connector needs Sentinel Contributor on the workspace and Security Administrator on the tenant; ingesting sign-in logs requires Entra ID P1 or P2, while other log types work with any Entra license.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-azure-active-directory"
+    },
+    {
+     "fact": "The tenant-based Defender for Cloud connector (preview) collects alerts across the whole tenant; if you integrate Defender XDR incidents, connect it and disconnect the subscription-based (legacy) connector to avoid duplicates.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-integration-365"
+    },
+    {
+     "fact": "Bi-directional sync on the Defender for Cloud connector closes the original Defender for Cloud alert when the Sentinel incident is closed.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-defender-for-cloud"
+    },
+    {
+     "fact": "AzureActivity, Office 365 audit logs (OfficeActivity) and Defender product SecurityAlert data are free data sources in Sentinel.",
+     "source": "https://learn.microsoft.com/azure/sentinel/billing"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Microsoft Sentinel > Configuration > Data connectors > (connector) > Open connector page",
+   "lab": {
+    "title": "Connect Azure Activity via Azure Policy",
+    "steps": [
+     "Install the Azure Activity solution from Content hub (if not already installed).",
+     "Open Configuration > Data connectors > Azure Activity > Open connector page and select Launch Azure Policy Assignment Wizard.",
+     "On Basics set Scope to your trial subscription; on Parameters choose your Sentinel workspace as the Primary Log Analytics workspace.",
+     "On Remediation select Create a remediation task, then Review + create > Create.",
+     "Generate activity (for example create and delete a resource group) and wait several minutes."
+    ],
+    "verify": "Run AzureActivity | take 10 in Advanced hunting (Defender portal) or Logs (Azure portal) and confirm records appear; the connector status turns Connected.",
+    "source": "https://learn.microsoft.com/azure/sentinel/quickstart-onboard"
+   },
+   "learnModules": [
+    {
+     "title": "Connect Microsoft services to Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/connect-microsoft-services-to-azure-sentinel/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which Entra license is required to stream sign-in logs to Sentinel?",
+     "back": "Microsoft Entra ID P1 or P2.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-azure-active-directory"
+    },
+    {
+     "front": "Which Defender for Cloud connector should you use with Defender XDR incident integration?",
+     "back": "Tenant-based Microsoft Defender for Cloud (preview); disconnect the subscription-based legacy connector.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-integration-365"
+    },
+    {
+     "front": "Why add a remediation task when assigning the Azure Policy for a diagnostic-settings connector?",
+     "back": "So the log-streaming policy also applies to existing resources, not only resources created later.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-diagnostic-setting-based"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o4-q1",
+     "type": "multi",
+     "difficulty": 2,
+     "scenario": "Contoso ingests Defender XDR incidents into Sentinel and also ingests Defender for Cloud alerts using the subscription-based connector. Analysts see duplicate incidents.",
+     "question": "Which two actions should you take? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Connect the Tenant-based Microsoft Defender for Cloud (Preview) connector",
+      "Disconnect the Subscription-based Microsoft Defender for Cloud (Legacy) connector",
+      "Enable bi-directional sync on every subscription",
+      "Enable Microsoft incident creation rules for Defender for Cloud",
+      "Move all subscriptions under one management group"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Learn's guidance for XDR-integrated customers is to connect the tenant-based connector and disconnect the legacy subscription-based connector (and turn off rules creating incidents from Defender for Cloud alerts). Bi-directional sync syncs status but doesn't remove duplicates. Enabling incident creation rules would create more duplicates. Management groups don't change connector behavior.",
+     "sources": [
+      {
+       "title": "Microsoft Defender for Cloud alerts and incidents in Microsoft Defender XDR",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/concept-integration-365"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o4-q2",
+     "type": "single",
+     "difficulty": 2,
+     "question": "You need the SigninLogs table in Sentinel. Which licensing requirement applies?",
+     "options": [
+      "Microsoft Entra ID Free is sufficient",
+      "Microsoft Entra ID P1 or P2",
+      "Microsoft Entra Workload ID Premium",
+      "Microsoft 365 E5 Compliance"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Sign-in logs require Entra ID P1 or P2; Free/O365 licenses cover the other log types only. Workload ID Premium is needed for risky service principal tables, not sign-in logs. E5 Compliance isn't the documented requirement.",
+     "sources": [
+      {
+       "title": "Send data to Microsoft Sentinel using the Microsoft Entra ID data connector",
+       "url": "https://learn.microsoft.com/azure/sentinel/connect-azure-active-directory"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o4-q3",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "The Azure Activity connector uses the diagnostic settings pipeline.",
+       "answer": true
+      },
+      {
+       "text": "A policy-managed diagnostic connector shows Disconnected after 14 days without ingested data.",
+       "answer": true
+      },
+      {
+       "text": "AzureActivity data is billed at the standard analytics ingestion rate.",
+       "answer": false
+      }
+     ],
+     "explanation": "Learn states Azure Activity now uses diagnostic settings, and policy-managed connectors show connected only if data was ingested in the past 14 days. AzureActivity is listed as a free data type in Sentinel billing.",
+     "sources": [
+      {
+       "title": "Connect Microsoft Sentinel ... diagnostic settings-based connections",
+       "url": "https://learn.microsoft.com/azure/sentinel/connect-services-diagnostic-setting-based"
+      },
+      {
+       "title": "Plan costs and understand Microsoft Sentinel pricing and billing",
+       "url": "https://learn.microsoft.com/azure/sentinel/billing"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o5",
+   "summary": "The Syslog via AMA and CEF via AMA connectors install the Azure Monitor Agent on a Linux machine (the source itself or a dedicated log forwarder) and push a data collection rule (DCR) that selects facilities and minimum severities. Plain syslog lands in the Syslog table and CEF in CommonSecurityLog. A forwarder also needs the installation script, which configures rsyslog/syslog-ng to listen on port 514.",
+   "keyFacts": [
+    {
+     "fact": "CEF messages land in CommonSecurityLog and Syslog messages in Syslog; AMA supports RFC 3164 and RFC 5424 syslog formats.",
+     "source": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview"
+    },
+    {
+     "fact": "Selecting a log level in the portal DCR collects that level and everything more severe (for example LOG_ERR also collects CRIT, ALERT, EMERG); the API lets you filter specific levels.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+    },
+    {
+     "fact": "Using the same facility for Syslog and CEF can duplicate data between Syslog and CommonSecurityLog; separate facilities or add an ingestion-time transformation to filter CEF out of the Syslog stream.",
+     "source": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview"
+    },
+    {
+     "fact": "The forwarder installation script configures rsyslog or syslog-ng and opens port 514 (TCP and UDP); AMA 1.28.11+ receives from the daemon on TCP 28330.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+    },
+    {
+     "fact": "Non-Azure forwarders need Azure Arc (Connected Machine agent) installed to appear in the DCR resource list.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+    },
+    {
+     "fact": "AMA-based data connectors need an internet connection from the agent machine; allow outbound port 443 to Microsoft Sentinel.",
+     "source": "https://learn.microsoft.com/azure/sentinel/data-connectors-reference"
+    },
+    {
+     "fact": "In the API DCR, the stream is Microsoft-Syslog for syslog and Microsoft-CommonSecurityLog for CEF.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Microsoft Sentinel > Configuration > Data connectors > Common Event Format (CEF) via AMA > Open connector page > +Create data collection rule",
+   "lab": {
+    "title": "Build a CEF log forwarder",
+    "steps": [
+     "Deploy a small Ubuntu VM (LinuxFwd01) in the same subscription.",
+     "Install the Common Event Format solution from Content hub.",
+     "Open CEF via AMA > +Create data collection rule; name it DCR-CEF, select LinuxFwd01 on Resources, and on Collect set LOG_LOCAL4 to LOG_INFO (other facilities none).",
+     "Create the rule, then SSH to LinuxFwd01 and run the Forwarder_AMA_installer.py command copied from the connector page.",
+     "From the VM run: logger -p local4.warn -P 514 -n 127.0.0.1 --rfc3164 -t CEF \"0|Contoso|TestFW|1.0|100|Test|5|src=10.0.0.1\""
+    ],
+    "verify": "After a few minutes, CommonSecurityLog | where DeviceVendor == \"Contoso\" returns the test event, and systemctl status azuremonitoragent shows active.",
+    "source": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+   },
+   "learnModules": [
+    {
+     "title": "Connect Common Event Format logs to Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/connect-common-event-format-logs-to-azure-sentinel/"
+    },
+    {
+     "title": "Connect syslog data sources to Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/connect-syslog-data-sources-to-azure-sentinel/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which table stores CEF messages collected by AMA?",
+     "back": "CommonSecurityLog.",
+     "source": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview"
+    },
+    {
+     "front": "What port does the forwarder script open for incoming syslog/CEF?",
+     "back": "514 over both TCP and UDP (configurable in the daemon config).",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+    },
+    {
+     "front": "Two ways to avoid Syslog/CEF duplication?",
+     "back": "Use different facilities for CEF and Syslog, or add a DCR transformation that filters CEF messages out of the Syslog stream.",
+     "source": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o5-q1",
+     "type": "order",
+     "difficulty": 2,
+     "question": "Put the steps to onboard a Palo Alto firewall through a CEF log forwarder in order.",
+     "items": [
+      "Install the vendor/CEF solution from Content hub",
+      "Create a DCR in the CEF via AMA connector and select the forwarder VM",
+      "Run the installation script on the forwarder",
+      "Configure the firewall to send CEF to the forwarder on port 514"
+     ],
+     "explanation": "The solution installs the connector; the connector's DCR installs AMA on the selected forwarder; the script then configures the syslog daemon and opens ports; only then can the device send logs to the forwarder. Configuring the device first would send logs to a daemon not yet listening.",
+     "sources": [
+      {
+       "title": "Syslog and Common Event Format (CEF) via AMA connectors for Microsoft Sentinel",
+       "url": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o5-q2",
+     "type": "single",
+     "difficulty": 2,
+     "question": "In the portal DCR for Syslog via AMA you set the auth facility to LOG_WARNING. Which messages are collected?",
+     "options": [
+      "Only LOG_WARNING",
+      "LOG_WARNING and all less severe levels (NOTICE, INFO, DEBUG)",
+      "LOG_WARNING and all more severe levels (ERR, CRIT, ALERT, EMERG)",
+      "All levels"
+     ],
+     "answer": [
+      2
+     ],
+     "explanation": "The portal sets a minimum level; the selected level plus higher-severity levels are collected. 'Only LOG_WARNING' requires the API, which can filter exact levels. Less severe levels aren't collected, and 'All levels' would require LOG_DEBUG.",
+     "sources": [
+      {
+       "title": "Ingest syslog and CEF messages to Microsoft Sentinel with the Azure Monitor Agent",
+       "url": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o5-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "An on-premises Linux forwarder must have Azure Arc installed to be selectable in the DCR.",
+       "answer": true
+      },
+      {
+       "text": "AMA 1.28.11 and later receive messages from the local syslog daemon on TCP port 28330.",
+       "answer": true
+      },
+      {
+       "text": "With the API method, AMA is installed automatically when you create the DCR.",
+       "answer": false
+      }
+     ],
+     "explanation": "Non-Azure machines appear only if the Azure Connected Machine (Arc) agent is installed. AMA 1.28.11+ listens on TCP 28330 (earlier versions use a Unix domain socket). With the Logs Ingestion API method you must install AMA manually before creating the DCR; only the portal method installs it automatically.",
+     "sources": [
+      {
+       "title": "Syslog and CEF via AMA overview",
+       "url": "https://learn.microsoft.com/azure/sentinel/cef-syslog-ama-overview"
+      },
+      {
+       "title": "Ingest syslog and CEF messages with AMA",
+       "url": "https://learn.microsoft.com/azure/sentinel/connect-cef-syslog-ama"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o6",
+   "summary": "The Windows Security Events via AMA connector uses a DCR to collect Security/AppLocker events into SecurityEvent, using predefined sets (All, Common, Minimal) or Custom XPath queries. Windows Event Forwarding (WEF) centralizes events on a Windows Event Collector (WEC); the Windows Forwarded Events connector, with AMA on the WEC, writes them to WindowsEvent instead. Many built-in analytics rules query SecurityEvent, so table choice matters.",
+   "keyFacts": [
+    {
+     "fact": "All = full Security and AppLocker logs (not Application/System); Common = full user audit trail (includes 4624 and 4634); Minimal = breach-indicating events only (includes 4624/4625/4688 but not 4634); Custom = XPath in the DCR.",
+     "source": "https://learn.microsoft.com/azure/sentinel/windows-security-event-id-reference"
+    },
+    {
+     "fact": "Windows Security Events via AMA writes to SecurityEvent; Windows Forwarded Events writes to WindowsEvent, even for forwarded Security log events.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+    },
+    {
+     "fact": "The Windows Forwarded Events connector requires WEC enabled and running with AMA installed on the WEC machine; Microsoft recommends deploying the ASIM WindowsEvent parsers.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+    },
+    {
+     "fact": "AMA supports XPath 1.0 only; test a query with Get-WinEvent -FilterXPath before using it in a DCR.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+    },
+    {
+     "fact": "Non-Azure Windows servers must have Azure Arc installed and enabled before you enable an AMA-based connector.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+    },
+    {
+     "fact": "Selecting the Security log in a generic Azure Monitor DCR sends events to the Event table, whereas the Sentinel connector sends the same events to SecurityEvent.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/vm/data-collection-windows-events"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Microsoft Sentinel > Configuration > Data connectors > Windows Security Events via AMA > Open connector page > +Create data collection rule",
+   "lab": {
+    "title": "Collect only failed logons with a custom XPath DCR",
+    "steps": [
+     "Install the Windows Security Events solution from Content hub.",
+     "On a test Windows VM run in PowerShell: Get-WinEvent -LogName 'Security' -FilterXPath '*[System[(EventID=4625)]]' -MaxEvents 5 to validate the XPath.",
+     "Open Windows Security Events via AMA > +Create data collection rule; name DCR-FailedLogon, select the VM on Resources.",
+     "On Collect choose Custom and add Security!*[System[(EventID=4625)]], then Review + create > Create.",
+     "Generate a failed logon (for example runas /user:fakeuser cmd with a wrong password)."
+    ],
+    "verify": "SecurityEvent | where EventID == 4625 returns the new event and no other event IDs arrive from that VM.",
+    "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+   },
+   "learnModules": [
+    {
+     "title": "Connect Windows hosts to Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/connect-windows-hosts-to-azure-sentinel/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which event set includes logoff 4634?",
+     "back": "Common (full audit trail). Minimal excludes 4634.",
+     "source": "https://learn.microsoft.com/azure/sentinel/windows-security-event-id-reference"
+    },
+    {
+     "front": "Which table do WEF-collected events land in?",
+     "back": "WindowsEvent (Windows Forwarded Events connector), not SecurityEvent.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+    },
+    {
+     "front": "Which XPath version does AMA support?",
+     "back": "XPath 1.0 only.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o6-q1",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Fabrikam forwards Security events from 2,000 workstations to WEC01 using WEF. WEC01 has AMA and the Windows Forwarded Events connector. Built-in Sentinel rules for Windows logons never fire, although events are visible in Sentinel.",
+     "question": "What is the most likely cause?",
+     "options": [
+      "The Common event set excludes event 4624",
+      "Forwarded events are written to WindowsEvent, but the rules query SecurityEvent",
+      "WEF events require the Event table",
+      "AMA doesn't support collection from a WEC server"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Learn warns that forwarded events go to WindowsEvent while many built-in rules query SecurityEvent; adapt the rules (or ASIM parsers) or use the Windows Security Events via AMA connector. Common includes 4624. The Event table is for generic Azure Monitor Windows event collection, not WEF in Sentinel. AMA on the WEC is the documented prerequisite, so it is supported.",
+     "sources": [
+      {
+       "title": "Connect Microsoft Sentinel ... Windows agent-based data connector",
+       "url": "https://learn.microsoft.com/azure/sentinel/connect-services-windows-based"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o6-q2",
+     "type": "hotspot",
+     "difficulty": 2,
+     "question": "Select the event set that meets each requirement with the least volume.",
+     "dropdowns": [
+      {
+       "label": "Full user audit trail including sign-outs",
+       "options": [
+        "Minimal",
+        "Common",
+        "All events"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Only breach-indicating events, no sign-outs",
+       "options": [
+        "Minimal",
+        "Common",
+        "Custom"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Only event 4740 (account lockout)",
+       "options": [
+        "Minimal",
+        "All events",
+        "Custom"
+       ],
+       "answer": 2
+      }
+     ],
+     "explanation": "Common keeps a full audit trail (4624 and 4634) while reducing volume versus All. Minimal covers breach indicators and omits 4634. A single event ID needs Custom XPath; Minimal and All collect many other IDs.",
+     "sources": [
+      {
+       "title": "Windows security event sets that can be sent to Microsoft Sentinel",
+       "url": "https://learn.microsoft.com/azure/sentinel/windows-security-event-id-reference"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o6-q3",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "The All events set includes the Windows System and Application logs.",
+       "answer": false
+      },
+      {
+       "text": "An on-premises Windows server needs Azure Arc before the AMA-based connector can collect from it.",
+       "answer": true
+      },
+      {
+       "text": "XPath functions such as contains() are supported in AMA XPath queries.",
+       "answer": false
+      }
+     ],
+     "explanation": "All events covers only the Security and AppLocker channels. Non-Azure servers need Arc first. AMA uses XPath 1.0 as supported by Windows Event Log, where functions like starts-with and contains aren't supported.",
+     "sources": [
+      {
+       "title": "Windows security event sets",
+       "url": "https://learn.microsoft.com/azure/sentinel/windows-security-event-id-reference"
+      },
+      {
+       "title": "Collect Windows events from virtual machine with Azure Monitor",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/vm/data-collection-windows-events"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o7",
+   "summary": "Custom tables store data that has no built-in table. Their names end in _CL and they are fed through DCRs: either text-file collection with AMA (Custom Logs via AMA) or the Logs Ingestion API, where an app sends JSON to a DCR endpoint or DCE. The DCR declares the input stream and an optional KQL transformation that shapes the data to the table schema.",
+   "keyFacts": [
+    {
+     "fact": "Custom tables used with the Logs Ingestion API must have the _CL suffix; the portal adds it automatically when you create a 'New custom log (DCR-based)'.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/tutorial-logs-ingestion-portal"
+    },
+    {
+     "fact": "The Logs Ingestion API needs an app registration (or managed identity), the target table, a DCR, and the Monitoring Metrics Publisher role on the DCR for the sending identity.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview"
+    },
+    {
+     "fact": "Role assignments on a DCR can take up to 30 minutes to propagate; sending earlier returns HTTP 403.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/tutorial-logs-ingestion-portal"
+    },
+    {
+     "fact": "A Direct-kind DCR provides its own logsIngestion endpoint, so a separate DCE isn't required unless you use private link.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/create-custom-table"
+    },
+    {
+     "fact": "For Custom Logs via AMA, the destination _CL table should contain TimeGenerated (datetime) and RawData (string), or Message when collecting from a forwarder.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-custom-logs-ama"
+    },
+    {
+     "fact": "Custom columns added to an Azure (built-in) table must use the _CF suffix; certain names such as TenantId, Type and _ResourceId are reserved.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview"
+    }
+   ],
+   "portalPath": "Azure portal > Log Analytics workspaces > (workspace) > Tables > Create > New custom log (DCR-based)",
+   "lab": {
+    "title": "Create a custom table and DCR with the Azure CLI",
+    "steps": [
+     "In Cloud Shell (Bash) run: az monitor log-analytics workspace table create --resource-group RG-SOC --workspace-name LAW-Contoso-SOC --name AppAudit_CL --plan Analytics --columns TimeGenerated=datetime RawData=string",
+     "Create a DCR JSON (my-dcr.json) with a streamDeclarations entry Custom-AppAudit_CL, a logAnalytics destination for the workspace, and a dataFlow to Custom-AppAudit_CL with transformKql 'source'.",
+     "Run: az extension add --name monitor-control-service, then az monitor data-collection rule create --resource-group RG-SOC --name DCR-AppAudit --rule-file ./my-dcr.json",
+     "Register an app in Entra ID and assign it Monitoring Metrics Publisher on DCR-AppAudit (Access control (IAM))."
+    ],
+    "verify": "Tables blade lists AppAudit_CL; after sending a sample record with the Logs Ingestion API (or the tutorial PowerShell script) and waiting for propagation, AppAudit_CL | take 10 returns rows.",
+    "source": "https://learn.microsoft.com/azure/azure-monitor/logs/create-custom-table"
+   },
+   "learnModules": [
+    {
+     "title": "Configure SIEM security operations using Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/configure-siem-security-operations-using-microsoft-sentinel/"
+    },
+    {
+     "title": "Tutorial: Send data to Azure Monitor Logs by using the Logs ingestion API (Azure portal)",
+     "url": "https://learn.microsoft.com/azure/azure-monitor/logs/tutorial-logs-ingestion-portal"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What suffix must a custom log table use?",
+     "back": "_CL",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview"
+    },
+    {
+     "front": "Which role lets an app send data through a DCR?",
+     "back": "Monitoring Metrics Publisher (Microsoft.Insights/Telemetry/Write) on the DCR.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/tutorial-logs-ingestion-portal"
+    },
+    {
+     "front": "What two columns does a Custom Logs via AMA table need?",
+     "back": "TimeGenerated (datetime) and RawData (string), or Message when using a log forwarder.",
+     "source": "https://learn.microsoft.com/azure/sentinel/connect-custom-logs-ama"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o7-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "A Contoso app registration sends JSON to the Logs Ingestion API and gets HTTP 403 Forbidden. The DCR and AppAudit_CL table exist.",
+     "question": "What should you verify first?",
+     "options": [
+      "The app has Log Analytics Reader on the workspace",
+      "The app has the Monitoring Metrics Publisher role on the DCR",
+      "The table name lacks the _CL suffix",
+      "The table uses the Basic plan"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Learn's troubleshooting maps 403 to a missing Monitoring Metrics Publisher assignment on the DCR (allow up to 30 minutes after assignment). Log Analytics Reader grants query, not ingestion. A wrong table/stream name produces 404, not 403. Table plan doesn't cause authorization failures.",
+     "sources": [
+      {
+       "title": "Tutorial: Send data to Azure Monitor Logs by using the Logs ingestion API (Azure portal)",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/tutorial-logs-ingestion-portal"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o7-q2",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "Which components are required to send custom data with the Logs Ingestion API? Each correct answer presents part of the solution. Choose three.",
+     "options": [
+      "A Microsoft Entra app registration or identity for authentication",
+      "A destination table that already exists",
+      "A data collection rule that defines the stream and destination",
+      "The Azure Monitor Agent on the sending machine",
+      "A Microsoft Sentinel playbook"
+     ],
+     "answer": [
+      0,
+      1,
+      2
+     ],
+     "explanation": "Learn lists the app registration, an existing table, and a DCR (a DCE is optional with Direct DCRs). AMA is used for agent-based collection, not REST API calls. Playbooks aren't part of ingestion.",
+     "sources": [
+      {
+       "title": "Logs Ingestion API in Azure Monitor",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o7-q3",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "When you create a DCR-based custom log in the portal you must type the _CL suffix yourself.",
+       "answer": false
+      },
+      {
+       "text": "A Direct-kind DCR can be used without a separate data collection endpoint.",
+       "answer": true
+      },
+      {
+       "text": "A custom column added to a built-in Azure table should use the _CF suffix.",
+       "answer": true
+      }
+     ],
+     "explanation": "The portal appends _CL automatically. Direct DCRs create their own logsIngestion endpoint. Learn states custom columns added to an Azure table must use the _CF suffix.",
+     "sources": [
+      {
+       "title": "Tutorial: Logs ingestion API (portal)",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/tutorial-logs-ingestion-portal"
+      },
+      {
+       "title": "Add or delete tables and columns in Azure Monitor Logs",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/create-custom-table"
+      },
+      {
+       "title": "Logs Ingestion API in Azure Monitor",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-ingestion-api-overview"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o8",
+   "summary": "Automation rules are lightweight, centrally managed rules triggered when an incident is created or updated or an alert is created; they can assign owners, change status/severity, add tags or tasks, and run playbooks, in a defined order. Playbooks are Azure Logic Apps workflows for complex or external actions (for example, isolating a device or creating a ticket). Calling playbooks directly from analytics rules is deprecated, so automation rules are the way to trigger them.",
+   "keyFacts": [
+    {
+     "fact": "Automation rule triggers are incident created, incident updated, and alert created; for the alert trigger, the only available action is Run playbook.",
+     "source": "https://learn.microsoft.com/azure/sentinel/create-manage-use-automation-rules"
+    },
+    {
+     "fact": "Only incident-trigger playbooks can run from incident-trigger rules and only alert-trigger playbooks from alert-trigger rules; both Standard and Consumption logic apps are supported.",
+     "source": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+    },
+    {
+     "fact": "Rules run sequentially by Order number and actions run in listed order; later rules see the incident as changed by earlier ones, and update-trigger rules have their own queue.",
+     "source": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+    },
+    {
+     "fact": "Rules can have an expiration date, useful for suppressing noise during a time-boxed penetration test.",
+     "source": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+    },
+    {
+     "fact": "Adding playbooks directly to analytics rules has been blocked since June 2023, and that legacy method was deprecated as of March 2026; invoke playbooks from automation rules (alert-created trigger) instead.",
+     "source": "https://learn.microsoft.com/azure/sentinel/automation/run-playbooks"
+    },
+    {
+     "fact": "Changes made by automation rules can be audited with SecurityIncident | where ModifiedBy contains \"Automation\".",
+     "source": "https://learn.microsoft.com/azure/sentinel/create-manage-use-automation-rules"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Microsoft Sentinel > Configuration > Automation > Create > Automation rule",
+   "lab": {
+    "title": "Auto-close pen-test noise with an expiring automation rule",
+    "steps": [
+     "Open Microsoft Sentinel > Configuration > Automation > Create > Automation rule; name it AR-PenTest-Close.",
+     "Trigger: When incident is created. Condition: Analytic rule name contains the scheduled rule your pen-test triggers (or tag/IP condition).",
+     "Actions: Change status > Closed, classification Benign Positive, comment 'Approved pen test'.",
+     "Set Rule expiration to the end of the test window and give it Order 1; select Apply."
+    ],
+    "verify": "Trigger the rule's detection; the new incident is closed automatically, and SecurityIncident | where ModifiedBy contains \"Automation\" shows the change.",
+    "source": "https://learn.microsoft.com/azure/sentinel/create-manage-use-automation-rules"
+   },
+   "learnModules": [
+    {
+     "title": "Automation in Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/training/modules/automation-microsoft-sentinel/"
+    },
+    {
+     "title": "Threat response with Microsoft Sentinel playbooks",
+     "url": "https://learn.microsoft.com/training/modules/threat-response-sentinel-playbooks/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What is the only action available for an alert-created automation rule?",
+     "back": "Run playbook.",
+     "source": "https://learn.microsoft.com/azure/sentinel/create-manage-use-automation-rules"
+    },
+    {
+     "front": "Which technology are Sentinel playbooks built on?",
+     "back": "Azure Logic Apps (Standard or Consumption).",
+     "source": "https://learn.microsoft.com/azure/sentinel/automation/automation"
+    },
+    {
+     "front": "Why use an automation rule expiration date?",
+     "back": "To disable the rule automatically after a time-limited activity, such as a penetration test.",
+     "source": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o8-q1",
+     "type": "hotspot",
+     "difficulty": 2,
+     "scenario": "Contoso has three requirements.",
+     "question": "Select the simplest solution for each requirement.",
+     "dropdowns": [
+      {
+       "label": "Assign every new high-severity incident to the Tier-2 team",
+       "options": [
+        "Automation rule",
+        "Playbook",
+        "Analytics rule"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Create a ServiceNow ticket for each new incident",
+       "options": [
+        "Automation rule only",
+        "Automation rule that runs a playbook",
+        "Workbook"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Close noisy incidents only until a pen test ends Friday",
+       "options": [
+        "Automation rule with an expiration date",
+        "Playbook with a timer",
+        "Disable the analytics rule"
+       ],
+       "answer": 0
+      }
+     ],
+     "explanation": "Assigning owners is a native automation rule action, so a playbook or analytics rule change is unnecessary. External systems need a Logic Apps playbook, triggered by an automation rule; a workbook only visualizes. Automation rules support expiration dates; a playbook timer is more complex, and disabling the analytics rule would lose detections.",
+     "sources": [
+      {
+       "title": "Automate threat response in Microsoft Sentinel with automation rules",
+       "url": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o8-q2",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Rule A (Order 1) lowers severity from Medium to Low for incidents from a lab subnet. Rule B (Order 2) runs a paging playbook on incidents with Medium or higher severity. Both use the incident-created trigger.",
+     "question": "A Medium incident from the lab subnet is created. What happens?",
+     "options": [
+      "Both rules run and the playbook pages the on-call analyst",
+      "Rule A runs; Rule B doesn't run because it evaluates the incident after Rule A changed it",
+      "Rule B runs first because playbook actions take priority",
+      "Neither runs because two rules can't share a trigger"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Rules run in Order sequence and later rules evaluate the incident's state after earlier rules act; after Rule A sets Low, Rule B's Medium-or-higher condition is false. Playbook actions don't jump the queue, and multiple rules can share a trigger.",
+     "sources": [
+      {
+       "title": "Automate threat response in Microsoft Sentinel with automation rules",
+       "url": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o8-q3",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "An incident-trigger automation rule can run an alert-trigger playbook.",
+       "answer": false
+      },
+      {
+       "text": "You can still add a playbook directly in an analytics rule's Automated response tab for new rules.",
+       "answer": false
+      },
+      {
+       "text": "Automation rules can add incident tasks for analysts.",
+       "answer": true
+      }
+     ],
+     "explanation": "Trigger types must match between rule and playbook. Since June 2023 new playbooks can't be added directly to analytics rules, and the legacy method was deprecated as of March 2026. Adding tasks is a built-in automation rule action.",
+     "sources": [
+      {
+       "title": "Automate threat response ... automation rules",
+       "url": "https://learn.microsoft.com/azure/sentinel/automate-incident-handling-with-automation-rules"
+      },
+      {
+       "title": "Automate and run Microsoft Sentinel playbooks",
+       "url": "https://learn.microsoft.com/azure/sentinel/automation/run-playbooks"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o9",
+   "summary": "Retention in Sentinel combines the Analytics tier (hot, interactive 'analytics retention') with total retention mirrored into the Sentinel data lake for up to 12 years, or ingesting directly to the Data Lake tier for cheap, lower-performance storage. In Azure Monitor terms, tables use the Analytics, Basic or Auxiliary/Lake plan, and long-term retention extends data beyond the interactive window. Settings are per table and managed in the Defender portal Tables page or the Log Analytics Tables blade.",
+   "keyFacts": [
+    {
+     "fact": "Analytics retention for Sentinel workspaces defaults to 90 days and can be extended to two years (730 days) at a prorated long-term retention charge; total retention can reach 12 years.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/data-platform-logs"
+    },
+    {
+     "fact": "Defender XDR advanced hunting data stays in the XDR default tier for 30 days; extending supported XDR tables up to 90 days incurs Sentinel ingestion but no extra storage cost.",
+     "source": "https://learn.microsoft.com/azure/sentinel/manage-data-overview"
+    },
+    {
+     "fact": "Data Lake tier: minimal ingestion cost and slower queries; analytics rules, hunting queries, watchlists, workbooks and playbooks are limited, and Restore and data export aren't available (KQL/notebook jobs can promote data to the analytics tier).",
+     "source": "https://learn.microsoft.com/azure/sentinel/manage-data-overview"
+    },
+    {
+     "fact": "Switching a table from Analytics to Data Lake stops real-time analytics and hunting queries on it; shortening total retention waits 30 days before deleting data.",
+     "source": "https://learn.microsoft.com/azure/sentinel/manage-data-overview"
+    },
+    {
+     "fact": "Basic tables are queryable for 30 days (queries billed per GB scanned); Auxiliary tables are queryable for the whole retention period with unoptimized performance; switching to Auxiliary stops alerts on that table.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans"
+    },
+    {
+     "fact": "A table's plan can be changed only once per week; total retention up to 4,383 days (12 years) can be set per table.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Microsoft Sentinel > Configuration > Tables > (table) > Manage table",
+   "lab": {
+    "title": "Set analytics and total retention on a table",
+    "steps": [
+     "In the Defender portal open Microsoft Sentinel > Configuration > Tables and select CommonSecurityLog (or another table you ingest).",
+     "Select Manage table; set Analytics retention to 180 days and Total retention to 2 years; Save.",
+     "Alternatively in the Azure portal: Log Analytics workspace > Tables > ... > Manage table > Data retention settings.",
+     "Review Table insights on the Tables page for ingestion volume before choosing Data Lake tier for verbose sources."
+    ],
+    "verify": "The table details pane shows 180 days analytics retention and 2 years total retention.",
+    "source": "https://learn.microsoft.com/azure/sentinel/manage-table-tiers-retention"
+   },
+   "learnModules": [
+    {
+     "title": "Create and manage Microsoft Sentinel workspaces",
+     "url": "https://learn.microsoft.com/training/modules/create-manage-azure-sentinel-workspaces/"
+    },
+    {
+     "title": "Manage data tiers and retention in Microsoft Sentinel",
+     "url": "https://learn.microsoft.com/azure/sentinel/manage-data-overview"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Maximum analytics (interactive) retention for an Analytics table?",
+     "back": "Two years (730 days).",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/data-retention-configure"
+    },
+    {
+     "front": "Maximum total retention?",
+     "back": "12 years (4,383 days).",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/data-retention-configure"
+    },
+    {
+     "front": "How often can you change a table's plan?",
+     "back": "Once per table per week.",
+     "source": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o9-q1",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Contoso ingests 2 TB/day of NetFlow logs. They are needed for occasional forensics for 3 years but never for real-time detections. Cost must be minimized.",
+     "question": "What should you configure?",
+     "options": [
+      "Analytics tier with 2-year analytics retention",
+      "Data Lake tier with 3-year retention",
+      "Analytics tier with 90-day analytics retention and data export to storage",
+      "Basic plan with 30-day retention"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Data Lake tier has minimal ingestion cost and up to 12 years retention, and Learn recommends it for low-touch forensic data not used for real-time alerts. Analytics tier with 2-year retention is the most expensive option. Data export adds complexity and doesn't keep data queryable in Sentinel. Basic with 30 days doesn't meet the 3-year requirement.",
+     "sources": [
+      {
+       "title": "Manage data tiers and retention in Microsoft Sentinel",
+       "url": "https://learn.microsoft.com/azure/sentinel/manage-data-overview"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o9-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "After switching a table from Analytics to Data Lake tier, existing analytics rules on that table keep running.",
+       "answer": false
+      },
+      {
+       "text": "If you shorten a table's total retention, Microsoft waits 30 days before removing the data.",
+       "answer": true
+      },
+      {
+       "text": "Defender XDR hunting tables are kept for 30 days by default in the XDR default tier.",
+       "answer": true
+      }
+     ],
+     "explanation": "Moving to Data Lake stops real-time analytics and hunting queries. Learn documents the 30-day grace period on retention reductions. XDR default tier keeps 30 days.",
+     "sources": [
+      {
+       "title": "Manage data tiers and retention in Microsoft Sentinel",
+       "url": "https://learn.microsoft.com/azure/sentinel/manage-data-overview"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o9-q3",
+     "type": "hotspot",
+     "difficulty": 2,
+     "question": "Select the Azure Monitor table plan that fits each case.",
+     "dropdowns": [
+      {
+       "label": "Real-time detection on sign-in data",
+       "options": [
+        "Analytics",
+        "Basic",
+        "Auxiliary"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Troubleshooting data queried within 30 days at reduced ingestion cost",
+       "options": [
+        "Analytics",
+        "Basic",
+        "Auxiliary"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Verbose audit data queried rarely across its full multi-year retention",
+       "options": [
+        "Analytics",
+        "Basic",
+        "Auxiliary"
+       ],
+       "answer": 2
+      }
+     ],
+     "explanation": "Analytics supports alerts and high-performance queries. Basic offers discounted ingestion with a 30-day query window. Auxiliary is lowest cost and queryable across total retention with unoptimized performance; it wouldn't suit alerting.",
+     "sources": [
+      {
+       "title": "Tables in Azure Monitor Logs",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-overview"
+      },
+      {
+       "title": "Configure a table plan",
+       "url": "https://learn.microsoft.com/azure/azure-monitor/logs/logs-table-plans"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d4s2o10",
+   "summary": "Microsoft Purview Audit (the unified audit log) records user and admin activity across Microsoft 365. In the Defender portal you can run the same audit search as in Purview (Audit page), and hunt over Microsoft 365 audit events with KQL in advanced hunting through the CloudAppEvents table, which Defender for Cloud Apps populates when the Microsoft 365 app connector is enabled with Microsoft 365 activities. Purview DLP and insider risk data also surface in advanced hunting tables such as CloudAppEvents and DataSecurityEvents (preview).",
+   "keyFacts": [
+    {
+     "fact": "CloudAppEvents holds events for accounts and objects in Office 365 and other connected cloud apps; it's populated only if Defender for Cloud Apps is connected to Microsoft 365 with 'Microsoft 365 activities' selected.",
+     "source": "https://learn.microsoft.com/defender-xdr/advanced-hunting-cloudappevents-table"
+    },
+    {
+     "fact": "To monitor Microsoft 365 activities in Defender for Cloud Apps, auditing must be enabled in Microsoft Purview.",
+     "source": "https://learn.microsoft.com/defender-cloud-apps/protect-office-365"
+    },
+    {
+     "fact": "The Defender portal Audit page (security.microsoft.com/auditlogsearch) provides the Purview audit search; access needs the View-Only Audit Logs or Audit Logs role.",
+     "source": "https://learn.microsoft.com/defender-xdr/microsoft-xdr-auditing"
+    },
+    {
+     "fact": "Audit (Standard) keeps records 180 days (90 days for logs before Oct 17, 2023); Audit (Premium) keeps Entra, Exchange, OneDrive and SharePoint records one year by default, with retention policies up to 10 years with an add-on.",
+     "source": "https://learn.microsoft.com/purview/audit-log-retention-policies"
+    },
+    {
+     "fact": "Advanced hunting explores up to 30 days of raw Defender XDR data, plus analytics-tier data per workspace retention when Sentinel is onboarded.",
+     "source": "https://learn.microsoft.com/defender-xdr/advanced-hunting-overview"
+    },
+    {
+     "fact": "DLP 'Go hunt' built-in queries (preview) use CloudAppEvents, which contains Purview DLP audit data across SharePoint, OneDrive, Exchange and devices.",
+     "source": "https://learn.microsoft.com/defender-xdr/dlp-investigate-alerts-defender"
+    }
+   ],
+   "portalPath": "Microsoft Defender portal > Investigation & response > Hunting > Advanced hunting (CloudAppEvents); Microsoft Defender portal > Audit",
+   "lab": {
+    "title": "Hunt Microsoft 365 file downloads in CloudAppEvents",
+    "steps": [
+     "Confirm auditing is on: in Exchange Online PowerShell run Get-AdminAuditLogConfig | Format-List UnifiedAuditLogIngestionEnabled and expect True. Don't use Security & Compliance PowerShell for this check; there the value always shows False (see https://learn.microsoft.com/purview/audit-log-enable-disable).",
+     "In the Defender portal open Settings > Cloud apps > App connectors > Connect an app > Microsoft 365, keep all components (including Microsoft 365 activities) selected and connect.",
+     "Download a file from a SharePoint site as a test user.",
+     "In Hunting > Advanced hunting run: CloudAppEvents | where ActionType == \"FileDownloaded\" | project Timestamp, AccountObjectId, Application, ObjectName, IPAddress | take 50"
+    ],
+    "verify": "The query returns the test download; the same activity also appears in an Audit search on the Defender portal Audit page.",
+    "source": "https://learn.microsoft.com/defender-xdr/advanced-hunting-cloudappevents-table"
+   },
+   "learnModules": [
+    {
+     "title": "Investigate threats by using audit features in Microsoft Defender XDR and Microsoft Purview Standard",
+     "url": "https://learn.microsoft.com/training/modules/investigate-threats-using-audit-in-microsoft-365-defender-microsoft-purview-standard/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which advanced hunting table contains Microsoft 365 audit activity?",
+     "back": "CloudAppEvents (populated by the Defender for Cloud Apps Microsoft 365 app connector).",
+     "source": "https://learn.microsoft.com/defender-xdr/advanced-hunting-cloudappevents-table"
+    },
+    {
+     "front": "Default Audit (Standard) retention?",
+     "back": "180 days (for logs generated on or after Oct 17, 2023).",
+     "source": "https://learn.microsoft.com/purview/audit-log-retention-policies"
+    },
+    {
+     "front": "Roles needed to search the audit log?",
+     "back": "Audit Logs or View-Only Audit Logs.",
+     "source": "https://learn.microsoft.com/defender-xdr/microsoft-xdr-auditing"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d4s2o10-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Analysts at Fabrikam run CloudAppEvents queries in advanced hunting but get no results, although Purview audit search shows SharePoint activity.",
+     "question": "What should you do?",
+     "options": [
+      "Turn on unified audit log ingestion in Exchange Online",
+      "Connect Microsoft 365 in Defender for Cloud Apps App connectors with Microsoft 365 activities selected",
+      "Increase the CloudAppEvents analytics retention to 90 days",
+      "Assign the analysts the Microsoft Sentinel Reader role"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "CloudAppEvents is populated by Defender for Cloud Apps, which requires the Microsoft 365 app connector with Microsoft 365 activities. Auditing is already on, since Purview search returns data. Retention changes don't create missing data. Sentinel Reader controls Sentinel workspace access, not XDR CloudAppEvents population.",
+     "sources": [
+      {
+       "title": "CloudAppEvents",
+       "url": "https://learn.microsoft.com/defender-xdr/advanced-hunting-cloudappevents-table"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o10-q2",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "Audit log search in the Defender portal is identical to audit search in the Purview portal.",
+       "answer": true
+      },
+      {
+       "text": "Audit (Premium) retains Exchange, SharePoint, OneDrive and Entra ID records for one year by default for licensed users.",
+       "answer": true
+      },
+      {
+       "text": "Advanced hunting shows two years of raw Defender XDR data by default.",
+       "answer": false
+      }
+     ],
+     "explanation": "Learn states the Defender portal audit search is the same as Purview's. The Audit (Premium) default policy keeps those workloads one year. Advanced hunting covers up to 30 days of raw XDR data by default.",
+     "sources": [
+      {
+       "title": "Audit log search in the Microsoft Defender portal",
+       "url": "https://learn.microsoft.com/defender-office-365/audit-log-search-defender-portal"
+      },
+      {
+       "title": "Manage audit log retention policies",
+       "url": "https://learn.microsoft.com/purview/audit-log-retention-policies"
+      },
+      {
+       "title": "Proactively hunt for threats with advanced hunting",
+       "url": "https://learn.microsoft.com/defender-xdr/advanced-hunting-overview"
+      }
+     ]
+    },
+    {
+     "id": "d4s2o10-q3",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "Which prerequisites apply so that SOC analysts can investigate Microsoft 365 user activity with KQL in Defender XDR? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Auditing is turned on in Microsoft Purview",
+      "Defender for Cloud Apps is connected to Microsoft 365",
+      "The Windows Forwarded Events connector is enabled",
+      "A custom _CL table is created for audit records"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Defender for Cloud Apps needs Purview auditing enabled to monitor Microsoft 365 activities, and its Microsoft 365 connector populates CloudAppEvents. WEF is for Windows events. No custom table is needed; CloudAppEvents is built in.",
+     "sources": [
+      {
+       "title": "How Defender for Cloud Apps helps protect your Microsoft 365 environment",
+       "url": "https://learn.microsoft.com/defender-cloud-apps/protect-office-365"
+      },
+      {
+       "title": "CloudAppEvents",
+       "url": "https://learn.microsoft.com/defender-xdr/advanced-hunting-cloudappevents-table"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,199 @@
+{
+  "exam": "SC-500",
+  "title": "Implementing End-to-End Security Controls for Cloud and AI Workloads",
+  "certification": "Microsoft Certified: Cloud and AI Security Engineer Associate",
+  "passScore": 700,
+  "studyGuide": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-500",
+  "certPage": "https://learn.microsoft.com/en-us/credentials/certifications/cloud-and-ai-security-engineer-associate",
+  "sandbox": "https://aka.ms/examdemo",
+  "retrieved": "2026-10-25",
+  "domains": [
+    {
+      "id": "d1",
+      "name": "Manage identity, access, and governance",
+      "weight": "20–25%",
+      "sections": [
+        {
+          "id": "d1s1",
+          "name": "Secure access to resources by using Microsoft Entra ID",
+          "objectives": [
+            {"id": "d1s1o1", "text": "Implement and configure Privileged Identity Management (PIM)"},
+            {"id": "d1s1o2", "text": "Implement conditional access policies"},
+            {"id": "d1s1o3", "text": "Implement and configure authentication methods, including multifactor authentication (MFA) and passwordless"},
+            {"id": "d1s1o4", "text": "Implement and configure identity for applications, including enterprise applications and app registrations"},
+            {"id": "d1s1o5", "text": "Manage OAuth permission grants and consent settings"},
+            {"id": "d1s1o6", "text": "Implement and configure managed identities for Azure resources"}
+          ]
+        },
+        {
+          "id": "d1s2",
+          "name": "Secure secrets and keys by using Azure Key Vault",
+          "objectives": [
+            {"id": "d1s2o1", "text": "Deploy Key Vault"},
+            {"id": "d1s2o2", "text": "Configure Key Vault settings"},
+            {"id": "d1s2o3", "text": "Configure access to Key Vault"},
+            {"id": "d1s2o4", "text": "Configure firewall settings on Key Vault"},
+            {"id": "d1s2o5", "text": "Manage keys, secrets, and certificates"},
+            {"id": "d1s2o6", "text": "Scan for secrets by using Defender Cloud Security Posture Management (Defender CSPM)"},
+            {"id": "d1s2o7", "text": "Implement Defender for Key Vault"}
+          ]
+        },
+        {
+          "id": "d1s3",
+          "name": "Implement governance to enforce security and regulatory compliance",
+          "objectives": [
+            {"id": "d1s3o1", "text": "Implement and configure security controls by using Azure Policy, including built-in and custom policy definitions"},
+            {"id": "d1s3o2", "text": "Evaluate regulatory compliance by using Microsoft Defender for Cloud"},
+            {"id": "d1s3o3", "text": "Implement and configure security controls in Defender for Cloud, including security standards and recommendations"},
+            {"id": "d1s3o4", "text": "Implement resource locks"},
+            {"id": "d1s3o5", "text": "Manage Azure built-in role assignments"},
+            {"id": "d1s3o6", "text": "Manage custom roles, including Azure roles and Microsoft Entra roles"},
+            {"id": "d1s3o7", "text": "Evaluate and remediate overprivileged access assignments by using Azure role-based access control (RBAC)"},
+            {"id": "d1s3o8", "text": "Configure security controls for backup protection by using Azure Backup security features"},
+            {"id": "d1s3o9", "text": "Implement and configure security controls by using infrastructure as code"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d2",
+      "name": "Secure storage, databases, and networking",
+      "weight": "25–30%",
+      "sections": [
+        {
+          "id": "d2s1",
+          "name": "Implement security for storage accounts",
+          "objectives": [
+            {"id": "d2s1o1", "text": "Implement and configure security for storage accounts"},
+            {"id": "d2s1o2", "text": "Configure Azure Storage firewall rules"},
+            {"id": "d2s1o3", "text": "Implement Defender for Storage threat protection configurations"},
+            {"id": "d2s1o4", "text": "Manage access to storage, including access policies"}
+          ]
+        },
+        {
+          "id": "d2s2",
+          "name": "Implement security for databases",
+          "objectives": [
+            {"id": "d2s2o1", "text": "Implement platform-level security configurations in Azure SQL"},
+            {"id": "d2s2o2", "text": "Configure database auditing for Azure SQL Database and Azure SQL Managed Instance"},
+            {"id": "d2s2o3", "text": "Configure Defender for Databases protection across Azure database services"}
+          ]
+        },
+        {
+          "id": "d2s3",
+          "name": "Implement security for Azure network services",
+          "objectives": [
+            {"id": "d2s3o1", "text": "Implement and manage network security groups (NSGs) and application security groups (ASGs)"},
+            {"id": "d2s3o2", "text": "Implement and configure network access policies by using Azure Virtual Network Manager"},
+            {"id": "d2s3o3", "text": "Configure security for an Azure Virtual WAN"},
+            {"id": "d2s3o4", "text": "Implement and configure security for virtual private network (VPN) connections"},
+            {"id": "d2s3o5", "text": "Implement and configure Microsoft Entra Private Access"},
+            {"id": "d2s3o6", "text": "Configure Azure private endpoints to secure access to Azure platform as a service (PaaS) resources"},
+            {"id": "d2s3o7", "text": "Configure Azure Private Link services to secure access to network resources"},
+            {"id": "d2s3o8", "text": "Implement and configure Azure Firewall"},
+            {"id": "d2s3o9", "text": "Evaluate effective security rules by using Azure Network Watcher diagnostics"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "name": "Secure compute",
+      "weight": "20–25%",
+      "sections": [
+        {
+          "id": "d3s1",
+          "name": "Implement security for AI",
+          "objectives": [
+            {"id": "d3s1o1", "text": "Identify overexposure of data in SharePoint"},
+            {"id": "d3s1o2", "text": "Identify risks related to Microsoft Copilot and AI apps by using Microsoft Purview Data Security Posture Management (DSPM)"},
+            {"id": "d3s1o3", "text": "Enable and configure real-time protection for Microsoft Copilot Studio agents"},
+            {"id": "d3s1o4", "text": "Implement conditional access for Microsoft Entra Agent ID"},
+            {"id": "d3s1o5", "text": "Analyze blast radius for security risks related to Entra Agent ID by using Defender XDR"},
+            {"id": "d3s1o6", "text": "Manage Entra Agent ID access"},
+            {"id": "d3s1o7", "text": "Configure and deploy AI Gateway in Azure API Management for Microsoft Foundry"},
+            {"id": "d3s1o8", "text": "Enable Defender for AI Service in Cloud Workload Protection in Defender for Cloud"},
+            {"id": "d3s1o9", "text": "Configure guardrails for agent security in Foundry"},
+            {"id": "d3s1o10", "text": "Monitor AI security by using the Data and AI security dashboard in Defender for Cloud"},
+            {"id": "d3s1o11", "text": "Manage agents in Microsoft 365 admin center"}
+          ]
+        },
+        {
+          "id": "d3s2",
+          "name": "Implement security for servers and virtual machines (VMs)",
+          "objectives": [
+            {"id": "d3s2o1", "text": "Implement and configure disk encryption"},
+            {"id": "d3s2o2", "text": "Plan and implement Azure Bastion"},
+            {"id": "d3s2o3", "text": "Enable and enforce use of just-in-time (JIT) VM access"},
+            {"id": "d3s2o4", "text": "Extend security controls to hybrid and multicloud servers by using Azure Arc"},
+            {"id": "d3s2o5", "text": "Onboard servers to Defender for Servers in Defender for Cloud, including hybrid and multicloud scenarios"},
+            {"id": "d3s2o6", "text": "Configure Defender for Servers settings, including vulnerability scanning, and endpoint detection and response (EDR)"},
+            {"id": "d3s2o7", "text": "Implement and manage agentless scanning for VMs in Defender for Servers"},
+            {"id": "d3s2o8", "text": "Configure security features on a VM, including secure boot, virtual Trusted Platform Module (vTPM), integrity monitoring, and security type"},
+            {"id": "d3s2o9", "text": "Enforce security configuration of Azure-managed servers by using Azure Machine Configuration"}
+          ]
+        },
+        {
+          "id": "d3s3",
+          "name": "Implement security for application platform services",
+          "objectives": [
+            {"id": "d3s3o1", "text": "Detect misconfigurations and runtime risks in container workloads by using Defender for Containers"},
+            {"id": "d3s3o2", "text": "Implement and configure security controls for Azure Kubernetes Service (AKS)"},
+            {"id": "d3s3o3", "text": "Implement and configure security controls for Azure Container Registry"},
+            {"id": "d3s3o4", "text": "Implement and configure security controls for Azure Container Instances and Azure Container Apps"},
+            {"id": "d3s3o5", "text": "Implement and configure security controls for Azure Functions, including authentication and network access"},
+            {"id": "d3s3o6", "text": "Implement and configure security controls for Azure Logic Apps"},
+            {"id": "d3s3o7", "text": "Implement and configure security controls for Azure App Service"},
+            {"id": "d3s3o8", "text": "Implement and configure Azure Web Application Firewall"},
+            {"id": "d3s3o9", "text": "Implement security policies for back-end API protection by using API Management"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d4",
+      "name": "Manage and monitor security posture",
+      "weight": "20–25%",
+      "sections": [
+        {
+          "id": "d4s1",
+          "name": "Manage security posture by using Defender for Cloud",
+          "objectives": [
+            {"id": "d4s1o1", "text": "Identify security risks by using Defender CSPM"},
+            {"id": "d4s1o2", "text": "Evaluate compliance against security frameworks by using Defender for Cloud"},
+            {"id": "d4s1o3", "text": "Enable and configure Defender for Cloud workload protection plans"},
+            {"id": "d4s1o4", "text": "Connect hybrid cloud and multicloud environments to Defender for Cloud, including Amazon Web Services (AWS) and Google Cloud Platform (GCP)"},
+            {"id": "d4s1o5", "text": "Configure Microsoft Defender Vulnerability Management settings for Azure VMs"},
+            {"id": "d4s1o6", "text": "Discover unprotected assets and vulnerabilities by using Microsoft Defender External Attack Surface Management (EASM)"}
+          ]
+        },
+        {
+          "id": "d4s2",
+          "name": "Implement activity and event collection in Microsoft Sentinel",
+          "objectives": [
+            {"id": "d4s2o1", "text": "Create and connect workspaces in Microsoft Sentinel"},
+            {"id": "d4s2o2", "text": "Assign roles in Microsoft Sentinel"},
+            {"id": "d4s2o3", "text": "Implement and use content hub solutions"},
+            {"id": "d4s2o4", "text": "Configure and use Microsoft data connectors for Azure resources"},
+            {"id": "d4s2o5", "text": "Implement and configure syslog and Common Event Format (CEF) event collections"},
+            {"id": "d4s2o6", "text": "Implement and configure collection of Windows Security events by using data collection rules, including Windows Event Forwarding (WEF)"},
+            {"id": "d4s2o7", "text": "Create custom log tables in the workspace to store ingested data"},
+            {"id": "d4s2o8", "text": "Implement automation rules and playbooks in Microsoft Sentinel"},
+            {"id": "d4s2o9", "text": "Implement data retention in Microsoft Sentinel data stores"},
+            {"id": "d4s2o10", "text": "Query Microsoft Purview Audit in Defender XDR"}
+          ]
+        },
+        {
+          "id": "d4s3",
+          "name": "Implement Microsoft Security Copilot",
+          "objectives": [
+            {"id": "d4s3o1", "text": "Configure workspaces for Security Copilot"},
+            {"id": "d4s3o2", "text": "Manage permissions and roles in Security Copilot"},
+            {"id": "d4s3o3", "text": "Enable and configure plugins"},
+            {"id": "d4s3o4", "text": "Enable and configure Microsoft agents and Security Store agents"}
+          ]
+        }
+      ]
+    }
+  ]
+}

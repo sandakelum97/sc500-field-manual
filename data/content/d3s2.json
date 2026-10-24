@@ -1,0 +1,1419 @@
+{
+ "sectionId": "d3s2",
+ "objectives": [
+  {
+   "objectiveId": "d3s2o1",
+   "summary": "Azure managed disks offer several encryption layers. Server-side encryption (SSE) is always on and can use customer-managed keys through a disk encryption set. Encryption at host extends SSE to temp disks and caches end to end. Azure Disk Encryption (ADE) encrypts inside the guest with BitLocker or DM-Crypt and is scheduled to retire on 15 September 2028. Confidential disk encryption binds keys to a confidential VM's TPM. Know what each layer covers and when to choose it.",
+   "keyFacts": [
+    {
+     "fact": "SSE always encrypts OS and data disks at rest with 256-bit AES and can use customer-managed keys when configured with a disk encryption set (DES); it doesn't encrypt temp disks or disk caches.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+    },
+    {
+     "fact": "Encryption at host encrypts temp disks and OS/data disk caches at rest and keeps data encrypted as it flows to storage; temp disks use only platform-managed keys, and it doesn't consume VM CPU.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+    },
+    {
+     "fact": "Azure Disk Encryption is scheduled for retirement on 15 September 2028; after that, ADE-encrypted disks fail to unlock on reboot. Use encryption at host for new VMs or confidential VMs with OS disk encryption.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+    },
+    {
+     "fact": "Encryption at host requires registering the EncryptionAtHost feature in the Microsoft.Compute namespace; enable it with az vm create --encryption-at-host or az vm update --set securityProfile.encryptionAtHost=true, and the VM must be deallocated to disable it.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/linux/disks-enable-host-based-encryption-cli"
+    },
+    {
+     "fact": "For customer-managed keys, the Key Vault or Managed HSM must be in the same region as the disks and must have purge protection enabled; if the key is disabled, deleted or expired, VMs using it automatically shut down.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption"
+    },
+    {
+     "fact": "Confidential disk encryption binds disk encryption keys to the VM's TPM so protected content is accessible only to that VM; it applies to the OS disk, with temp disk encryption as an opt-in.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+    }
+   ],
+   "portalPath": "Azure portal > Virtual machines > (VM) > Disks > Additional settings > Encryption at host; Azure portal > Disk Encryption Sets",
+   "lab": {
+    "title": "Create a VM with encryption at host using platform-managed keys",
+    "steps": [
+     "Open Azure Cloud Shell (Bash) in a trial subscription.",
+     "Run: az feature register --namespace Microsoft.Compute --name EncryptionAtHost",
+     "Run az feature show --namespace Microsoft.Compute --name EncryptionAtHost until the state is Registered.",
+     "Run: az group create -n rg-enc-lab -l eastus",
+     "Run: az vm create -g rg-enc-lab -n vmEnc1 --image Ubuntu2204 --size Standard_D2s_v5 --encryption-at-host --generate-ssh-keys",
+     "Run: az vm show -g rg-enc-lab -n vmEnc1 --query securityProfile.encryptionAtHost -o tsv"
+    ],
+    "verify": "The final command returns true, and in Defender for Cloud the VM's disk encryption status is reported as healthy.",
+    "source": "https://learn.microsoft.com/azure/virtual-machines/linux/disks-enable-host-based-encryption-cli"
+   },
+   "learnModules": [
+    {
+     "title": "Plan and implement advanced security for compute",
+     "url": "https://learn.microsoft.com/training/modules/advanced-security-compute/"
+    },
+    {
+     "title": "Secure your Azure virtual machine disks",
+     "url": "https://learn.microsoft.com/training/modules/secure-your-azure-virtual-machine-disks/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which disk encryption option covers temp disks and caches without using VM CPU?",
+     "back": "Encryption at host.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+    },
+    {
+     "front": "ADE retirement date",
+     "back": "15 September 2028.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+    },
+    {
+     "front": "Resource that links managed disks to a customer-managed key in Key Vault",
+     "back": "Disk Encryption Set (DES).",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o1-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso is deploying new Linux VMs. Policy requires temp disks and disk caches to be encrypted at rest, data to be encrypted between compute and storage, and no CPU overhead inside the guest.",
+     "question": "Which option should you use?",
+     "options": [
+      "Encryption at host",
+      "Server-side encryption with a disk encryption set only",
+      "Azure Disk Encryption with a key encryption key",
+      "Double encryption at rest"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Encryption at host covers temp disks and caches, keeps data encrypted in flight to storage, and doesn't use VM CPU. SSE with a DES adds customer-managed keys but still doesn't encrypt temp disks or caches. ADE runs in the guest, uses VM CPU and is retiring. Double encryption adds a second infrastructure layer for persisted disks but doesn't cover temp disks.",
+     "sources": [
+      {
+       "title": "Overview of managed disk encryption options",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o1-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about managed disk encryption, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "If the customer-managed key used by a VM's disks is disabled, the VM automatically shuts down.",
+       "answer": true
+      },
+      {
+       "text": "The Key Vault holding the customer-managed key can be in any Azure region.",
+       "answer": false
+      },
+      {
+       "text": "Encryption at host temp disks can be encrypted with customer-managed keys.",
+       "answer": false
+      }
+     ],
+     "explanation": "Learn states VMs using a disabled, deleted or expired key shut down automatically, so statement 1 is true. Disks and the Key Vault or Managed HSM must be in the same region, so statement 2 is false. Temp disks with encryption at host use platform-managed keys only, so statement 3 is false.",
+     "sources": [
+      {
+       "title": "Server-side encryption of Azure Disk Storage",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption"
+      },
+      {
+       "title": "Overview of managed disk encryption options",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/disk-encryption-overview"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o1-q3",
+     "type": "order",
+     "difficulty": 3,
+     "question": "The EncryptionAtHost feature is already registered on your subscription. You need to deploy a Linux VM that uses encryption at host with a customer-managed key in Azure Key Vault. Put the steps in order.",
+     "items": [
+      "Create a Key Vault with purge protection enabled",
+      "Create an RSA key in the Key Vault",
+      "Create a disk encryption set that references the key URL",
+      "Grant the disk encryption set's managed identity get, wrapkey and unwrapkey permissions on the Key Vault",
+      "Create the VM with --encryption-at-host and the disk encryption set specified for its disks"
+     ],
+     "explanation": "The key can only be created in an existing vault (purge protection is mandatory for disk encryption), and the disk encryption set needs the key URL, so the key must exist first. Creating the disk encryption set creates its system-assigned identity, which must then be granted get, wrapkey and unwrapkey on the vault before disks can use it. Finally, the VM is created with encryption at host and the disk encryption set. Any other sequence fails because a dependency doesn't exist yet.",
+     "sources": [
+      {
+       "title": "Use the Azure CLI to enable end-to-end encryption using encryption at host",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/linux/disks-enable-host-based-encryption-cli"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o2",
+   "summary": "Azure Bastion provides RDP and SSH to VMs over TLS on port 443 without public IPs on the VMs. Choosing the SKU is the key planning decision. Developer is free and supports one VM at a time with no peering. Basic gives two fixed instances. Standard adds native client, shareable links, IP-based connect, custom ports, file transfer and host scaling. Premium adds session recording and private-only deployment.",
+   "keyFacts": [
+    {
+     "fact": "Basic, Standard and Premium require a dedicated subnet named AzureBastionSubnet of /26 or larger; Developer uses shared infrastructure and needs neither the subnet nor a public IP.",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    },
+    {
+     "fact": "Developer SKU supports one VM connection at a time and doesn't support virtual network peering; Basic has a fixed two instances (40 RDP / 80 SSH sessions).",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    },
+    {
+     "fact": "Standard adds native client (Azure CLI) connections, shareable links, IP-based connections, custom inbound ports, file upload/download and host scaling from 2 to 50 instances.",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    },
+    {
+     "fact": "Premium adds graphical session recording (stored in a blob container, authenticated with a SAS URL or a managed identity (preview)) and private-only deployment with no public IP.",
+     "source": "https://learn.microsoft.com/azure/bastion/session-recording"
+    },
+    {
+     "fact": "Session recording isn't available through the native client, and recording storage must not use immutable storage policies or blob versioning.",
+     "source": "https://learn.microsoft.com/azure/bastion/session-recording"
+    },
+    {
+     "fact": "SKU upgrades take about 10 minutes; downgrading isn't supported, so you must delete and recreate Bastion.",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    }
+   ],
+   "portalPath": "Azure portal > Bastions > (bastion) > Configuration (Tier and features) / Session recordings",
+   "lab": {
+    "title": "Deploy Bastion Standard and connect with the native client",
+    "steps": [
+     "Create a VNet with an AzureBastionSubnet of /26 and a workload subnet containing a Linux VM with no public IP.",
+     "Create a Standard SKU public IP, then run: az network bastion create -g rg-bastion-lab -n bas1 --vnet-name vnet1 --public-ip-address bas1-pip --sku Standard --enable-tunneling true",
+     "After deployment, run: az network bastion ssh --name bas1 --resource-group rg-bastion-lab --target-resource-id <VM resource ID> --auth-type ssh-key --username azureuser --ssh-key ~/.ssh/id_rsa",
+     "In the portal, open the bastion's Sessions page to see the active session."
+    ],
+    "verify": "You get an SSH prompt on the VM through Bastion, and the Sessions page lists your session with source IP and duration.",
+    "source": "https://learn.microsoft.com/azure/bastion/connect-vm-native-client-linux"
+   },
+   "learnModules": [
+    {
+     "title": "Connect to virtual machines through the Azure portal by using Azure Bastion",
+     "url": "https://learn.microsoft.com/training/modules/connect-vm-with-azure-bastion/"
+    },
+    {
+     "title": "Plan and implement advanced security for compute",
+     "url": "https://learn.microsoft.com/training/modules/advanced-security-compute/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Minimum Bastion SKU for session recording",
+     "back": "Premium.",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    },
+    {
+     "front": "Minimum Bastion SKU for native client, shareable links and file transfer",
+     "back": "Standard.",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    },
+    {
+     "front": "Required AzureBastionSubnet size for dedicated SKUs",
+     "back": "/26 or larger.",
+     "source": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o2-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Fabrikam's auditors require that all RDP sessions to production VMs be recorded, and the Bastion host must not have a public IP address.",
+     "question": "Which Bastion SKU meets the requirements with the least cost?",
+     "options": [
+      "Premium",
+      "Standard",
+      "Basic",
+      "Developer"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Only Premium supports session recording and private-only deployment without a public IP. Standard adds native client and scaling but not recording. Basic lacks advanced features and requires a public IP. Developer is free but supports one VM at a time with no recording.",
+     "sources": [
+      {
+       "title": "Choose the right Azure Bastion SKU",
+       "url": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o2-q2",
+     "type": "hotspot",
+     "difficulty": 2,
+     "question": "Select the minimum Bastion SKU for each requirement.",
+     "dropdowns": [
+      {
+       "label": "Free access to a single dev/test VM",
+       "options": [
+        "Developer",
+        "Basic",
+        "Standard",
+        "Premium"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Connect to VMs in a peered spoke VNet from the portal only",
+       "options": [
+        "Developer",
+        "Basic",
+        "Standard",
+        "Premium"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Upload files using the native client",
+       "options": [
+        "Developer",
+        "Basic",
+        "Standard",
+        "Premium"
+       ],
+       "answer": 2
+      }
+     ],
+     "explanation": "Developer is free for one VM at a time. Basic is the lowest SKU that supports VNet peering. File upload and download via the native client starts at Standard. Higher SKUs would also work but cost more; lower SKUs lack the capability.",
+     "sources": [
+      {
+       "title": "Choose the right Azure Bastion SKU",
+       "url": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o2-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "You can downgrade a Bastion host from Standard to Basic in place.",
+       "answer": false
+      },
+      {
+       "text": "Session recording works with sessions opened through the Azure CLI native client.",
+       "answer": false
+      },
+      {
+       "text": "When session recording is enabled, Bastion records all sessions through that host.",
+       "answer": true
+      }
+     ],
+     "explanation": "Downgrading isn't supported; you must delete and recreate Bastion, so statement 1 is false. Session recording isn't available via native client, so statement 2 is false. Learn states all sessions through a recording-enabled host are recorded, so statement 3 is true.",
+     "sources": [
+      {
+       "title": "Choose the right Azure Bastion SKU",
+       "url": "https://learn.microsoft.com/azure/bastion/bastion-sku-comparison"
+      },
+      {
+       "title": "Configure Bastion session recording",
+       "url": "https://learn.microsoft.com/azure/bastion/session-recording"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o3",
+   "summary": "Just-in-time (JIT) VM access is a Defender for Servers Plan 2 feature that keeps management ports closed with deny rules and opens them only on approved request, for a limited time and from specific source IPs. It works with NSGs and with Azure Firewall classic rules, and also supports AWS EC2 (preview). Users request access from Defender for Cloud, the VM's Connect page, PowerShell or REST.",
+   "keyFacts": [
+    {
+     "fact": "JIT requires Defender for Servers Plan 2 and supports Resource Manager VMs and VMs protected by Azure Firewall in the same VNet; classic VMs and firewalls managed by Azure Firewall Manager policies aren't supported.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    },
+    {
+     "fact": "Defender for Cloud recommends protecting ports 22 (SSH), 3389 (RDP), 5985 and 5986 (WinRM); for each port you set protocol, allowed source IPs and maximum request time.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    },
+    {
+     "fact": "When a request is approved, Defender for Cloud configures the NSG and Azure Firewall to allow the requested ports from the specified IP for the approved time; when it expires the NSG is restored, new connections are blocked and established connections aren't interrupted.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/just-in-time-access-overview"
+    },
+    {
+     "fact": "To request access a user needs Microsoft.Security/locations/jitNetworkAccessPolicies/initiate/action plus read permissions; Set-JitLeastPrivilegedRole script creates a least-privileged role.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    },
+    {
+     "fact": "PowerShell uses Set-AzJitNetworkAccessPolicy to configure JIT and Start-AzJitNetworkAccessPolicy to request access; a VM shows as Unsupported if it has no NSG or Azure Firewall.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    }
+   ],
+   "portalPath": "Azure portal > Microsoft Defender for Cloud > Workload protections > Just-in-time VM access > Not configured / Configured",
+   "lab": {
+    "title": "Enable JIT on a VM and request access",
+    "steps": [
+     "Enable Defender for Servers Plan 2 on a trial subscription containing a Windows VM with an NSG.",
+     "Open Defender for Cloud > Workload protections > Just-in-time VM access > Not configured, select the VM and choose Enable JIT on VMs.",
+     "Keep port 3389, set Allowed source IPs to Per request and Maximum request time to 1 hour, then Save.",
+     "Go to the Configured tab, select the VM and choose Request access; select port 3389, My IP, a 1-hour window, then Open ports.",
+     "Open the VM's NSG and review the inbound rules."
+    ],
+    "verify": "The NSG shows the JIT deny rule for 3389 plus a temporary allow rule for your IP while the request is active; after the window, the NSG returns to its previous state.",
+    "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+   },
+   "learnModules": [
+    {
+     "title": "Explore just-in-time virtual machine access",
+     "url": "https://learn.microsoft.com/training/modules/just-in-time-access/"
+    },
+    {
+     "title": "Administer and manage Windows Server IaaS Virtual Machine remotely",
+     "url": "https://learn.microsoft.com/training/modules/administer-manage-windows-server-iaas-virtual-machine-remotely/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Defender for Servers plan required for JIT VM access",
+     "back": "Plan 2.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    },
+    {
+     "front": "Ports JIT recommends by default",
+     "back": "22, 3389, 5985, 5986.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    },
+    {
+     "front": "Why would a VM appear as Unsupported for JIT?",
+     "back": "No NSG or Azure Firewall, a classic VM, or JIT disabled in the security policy.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o3-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso enabled Defender for Servers Plan 1 on a subscription. The Just-in-time VM access page doesn't let you enable JIT on VM1.",
+     "question": "What should you do first?",
+     "options": [
+      "Upgrade the subscription to Defender for Servers Plan 2",
+      "Install the Azure Monitor Agent on VM1",
+      "Assign VM1 a public IP address",
+      "Enable Defender CSPM"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "JIT is a Defender for Servers Plan 2 feature. The Azure Monitor Agent isn't required for JIT. JIT works on NSG or Azure Firewall rules and doesn't need a public IP. Defender CSPM doesn't provide JIT.",
+     "sources": [
+      {
+       "title": "Enable just-in-time access",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o3-q2",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "Which two configurations make a VM unsupported for JIT? Each correct answer presents a complete solution. Choose two.",
+     "options": [
+      "The VM was deployed with the classic deployment model",
+      "The VM is protected by an Azure Firewall managed through Azure Firewall Manager policies",
+      "The VM is a Resource Manager VM with an NSG on its NIC",
+      "The VM is an AWS EC2 instance in a connected AWS account"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Classic VMs and VMs behind Firewall Manager-controlled Azure Firewalls are listed as unsupported. Resource Manager VMs with NSGs are supported. AWS EC2 instances are supported in preview when the AWS account is connected.",
+     "sources": [
+      {
+       "title": "Enable just-in-time access",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o3-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about JIT, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "When the JIT window expires, existing RDP sessions are immediately disconnected.",
+       "answer": false
+      },
+      {
+       "text": "A user needs the jitNetworkAccessPolicies/initiate/action permission to request access.",
+       "answer": true
+      },
+      {
+       "text": "Start-AzJitNetworkAccessPolicy is used to request JIT access with PowerShell.",
+       "answer": true
+      }
+     ],
+     "explanation": "After the window, rules revert and new connections are blocked, but existing connections aren't interrupted, so statement 1 is false. The initiate action is required to request access, so statement 2 is true. Start-AzJitNetworkAccessPolicy sends the access request, so statement 3 is true.",
+     "sources": [
+      {
+       "title": "Enable just-in-time access",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+      },
+      {
+       "title": "Developer and admin access to Azure VMs",
+       "url": "https://learn.microsoft.com/azure/networking/design-guide/developer-admin-access"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o4",
+   "summary": "Azure Arc-enabled servers project on-premises and other-cloud machines into Azure through the Connected Machine agent, so Defender for Cloud, Azure Policy and Machine Configuration can manage them. Arc also gives local security controls that only a local admin can change: extension allowlists and blocklists, monitor mode, and disabling the guest configuration agent or remote connectivity. These are important for Tier 0 servers such as domain controllers.",
+   "keyFacts": [
+    {
+     "fact": "Microsoft recommends onboarding non-Azure machines as Azure Arc-enabled servers so they get the full set of Defender for Servers features; the Arc Connected Machine agent is installed on them.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/plan-defender-for-servers-select-plan"
+    },
+    {
+     "fact": "Extension allowlists and blocklists are set locally with azcmagent config set extensions.allowlist/blocklist; nobody in Azure, even an Owner or Global Administrator, can override them. Allowlists are preferred because they block new extensions by default.",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+    },
+    {
+     "fact": "Monitor mode (azcmagent config set config.mode monitor) applies a Microsoft-managed allowlist of monitoring and security extensions, disables remote connectivity and disables the machine configuration agent.",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-machine-configuration"
+    },
+    {
+     "fact": "For Tier 0 assets, consider a dedicated subscription, disabling incoming connections (incomingconnections.enabled false), disabling guest configuration, and allowlisting only needed extensions such as AMA and MDE.Windows.",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-overview"
+    },
+    {
+     "fact": "The Custom Script Extension and Run Command run as Local System or root; block them unless needed because attackers could use them to run malicious code.",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+    }
+   ],
+   "portalPath": "Azure portal > Azure Arc > Machines > Add/Create > Add a machine; local agent: azcmagent config",
+   "lab": {
+    "title": "Lock down the Arc agent on a test server",
+    "steps": [
+     "Onboard a test Windows or Linux server to Azure Arc using the script generated at Azure Arc > Machines > Add a machine.",
+     "On the server run: azcmagent show and confirm the agent is Connected.",
+     "Run: azcmagent config set extensions.allowlist \"Microsoft.Azure.Monitor/AzureMonitorLinuxAgent,Microsoft.Azure.AzureDefenderForServers/MDE.Linux\" (use the Windows equivalents on Windows).",
+     "Run: azcmagent config set guestconfiguration.enabled false",
+     "Run: azcmagent config list to review the settings.",
+     "From the Azure portal, try installing the Custom Script Extension on the machine."
+    ],
+    "verify": "azcmagent config list shows the allowlist and guest configuration disabled, and the Custom Script Extension install is reported as failed.",
+    "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+   },
+   "learnModules": [
+    {
+     "title": "Configure Microsoft Defender for Cloud for Azure Arc-enabled servers",
+     "url": "https://learn.microsoft.com/training/modules/configure-defender-cloud-azure-arc-enabled-servers/"
+    },
+    {
+     "title": "Set up Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/set-up-microsoft-defender-cloud/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Command to put the Arc agent into monitor mode",
+     "back": "azcmagent config set config.mode monitor",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+    },
+    {
+     "front": "Can an Azure subscription Owner override a local Arc extension allowlist?",
+     "back": "No. It's configured locally on the server and can only be changed there.",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+    },
+    {
+     "front": "Three things monitor mode does",
+     "back": "Applies a Microsoft-managed extension allowlist, disables remote connectivity, disables the machine configuration agent.",
+     "source": "https://learn.microsoft.com/azure/azure-arc/servers/security-machine-configuration"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o4-q1",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Contoso connects an on-premises domain controller (DC1) to Azure Arc only to send security logs to Sentinel and protect it with Defender for Endpoint. Even a compromised Azure Owner account must not be able to run scripts on DC1 through Arc.",
+     "question": "What should you configure?",
+     "options": [
+      "A local extension allowlist containing only the Azure Monitor Agent and MDE.Windows extensions",
+      "An Azure Policy deny assignment for the Custom Script Extension",
+      "A Conditional Access policy for the Arc service principal",
+      "A resource lock on the Arc machine resource"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Local allowlists are enforced on the server and can't be overridden from Azure, even by Owners, and they block every extension not listed. An Azure Policy assignment can be changed by a compromised Owner. Conditional Access doesn't control extension installation. A resource lock prevents deleting or modifying the resource but an Owner can remove it.",
+     "sources": [
+      {
+       "title": "Extensions security for Azure Arc-enabled servers",
+       "url": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o4-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about Arc agent monitor mode, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "Monitor mode disables the machine configuration agent.",
+       "answer": true
+      },
+      {
+       "text": "While in monitor mode, you can add your own extensions to the allowlist.",
+       "answer": false
+      },
+      {
+       "text": "Monitor mode still allows Microsoft Defender for Cloud extensions.",
+       "answer": true
+      }
+     ],
+     "explanation": "Monitor mode disables the machine configuration agent, so statement 1 is true. You can't modify the allowlist or blocklist in monitor mode; you must return to full mode, so statement 2 is false. Monitoring and security extensions such as Defender for Cloud are allowed, so statement 3 is true.",
+     "sources": [
+      {
+       "title": "Extensions security for Azure Arc-enabled servers",
+       "url": "https://learn.microsoft.com/azure/azure-arc/servers/security-extensions"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o4-q3",
+     "type": "single",
+     "difficulty": 1,
+     "question": "Why does Microsoft recommend onboarding on-premises servers to Defender for Servers through Azure Arc rather than direct Defender for Endpoint onboarding?",
+     "options": [
+      "Arc-enabled machines can use the full Defender for Servers feature set",
+      "Direct onboarding doesn't provide EDR",
+      "Arc removes the need for any agent on the server",
+      "Direct onboarding is only supported for Linux"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Arc onboarding lets machines take full advantage of Defender for Servers features; direct onboarding gives Plan 1 features plus only premium vulnerability management from Plan 2. Direct onboarding does provide EDR through Defender for Endpoint. Arc requires the Connected Machine agent. Direct onboarding isn't limited to Linux.",
+     "sources": [
+      {
+       "title": "Select a Defender for Servers plan and deployment scope",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/plan-defender-for-servers-select-plan"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o5",
+   "summary": "Defender for Servers protects Windows and Linux machines in Azure, AWS, GCP and on-premises. You enable it on a subscription and choose Plan 1 or Plan 2. AWS and GCP machines are onboarded through Defender for Cloud multicloud connectors, which can auto-provision Azure Arc. On-premises machines should be onboarded as Arc-enabled servers. Plan 1 is focused on Defender for Endpoint EDR, while Plan 2 adds agentless scanning, JIT, FIM, premium vulnerability management and the 500 MB data ingestion benefit.",
+   "keyFacts": [
+    {
+     "fact": "Plan 1 focuses on EDR via the Defender for Endpoint integration; Plan 2 includes Plan 1 and adds agentless scanning, premium Defender Vulnerability Management, file integrity monitoring, JIT access, OS configuration and update assessment, network map and a free data ingestion benefit.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/plan-defender-for-servers-select-plan"
+    },
+    {
+     "fact": "Connecting AWS accounts and GCP projects onboards their machines as Azure Arc-enabled VMs by default; Arc auto-provisioning for AWS requires the Owner role on the Azure subscription and the AWS SSM Agent on EC2 instances.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-aws"
+    },
+    {
+     "fact": "If on-premises machines are onboarded by directly installing Defender for Endpoint instead of Arc, Plan 1 functionality is available, and Plan 2 only adds premium Defender Vulnerability Management features.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan"
+    },
+    {
+     "fact": "After you enable a plan, a 30-day trial starts that can't be stopped, paused or extended.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan"
+    },
+    {
+     "fact": "Both plans provide the capabilities of Microsoft Defender for Endpoint Plan 2, including EDR.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/faq-defender-for-servers"
+    },
+    {
+     "fact": "To get 500 MB of free daily ingestion per node, enable Plan 2 on the Log Analytics workspace the machines report to; eligible security data must arrive through AMA, the Defender for Endpoint sensor or agentless FIM.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/data-ingestion-benefit"
+    }
+   ],
+   "portalPath": "Azure portal > Microsoft Defender for Cloud > Environment settings > (subscription or AWS/GCP connector) > Defender plans > Servers",
+   "lab": {
+    "title": "Enable Defender for Servers Plan 2 on a subscription",
+    "steps": [
+     "Sign in to the Azure portal with Owner on a trial subscription.",
+     "Open Microsoft Defender for Cloud > Environment settings and select the subscription.",
+     "On Defender plans, set Servers to On and select Change plans > Plan 2.",
+     "Select Settings for Servers and confirm Vulnerability assessment, Endpoint protection and Agentless scanning for machines are On.",
+     "Select Save. Optionally, under Environment settings > Add environment, start connecting an AWS account and note the Arc auto-provisioning option."
+    ],
+    "verify": "The Servers plan shows On (Plan 2) and, within a few hours, Azure VMs show the MDE.Windows or MDE.Linux extension and appear as protected in Inventory.",
+    "source": "https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan"
+   },
+   "learnModules": [
+    {
+     "title": "Configure and manage threat protection by using Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/microsoft-defender-cloud-threat-protection/"
+    },
+    {
+     "title": "Configure Microsoft Defender for Cloud for Azure Arc-enabled servers",
+     "url": "https://learn.microsoft.com/training/modules/configure-defender-cloud-azure-arc-enabled-servers/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "How are AWS EC2 and GCP VMs onboarded to Defender for Servers by default?",
+     "back": "Through the multicloud connector, as Azure Arc-enabled VMs.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan"
+    },
+    {
+     "front": "Defender for Servers trial length and flexibility",
+     "back": "30 days; it can't be stopped, paused or extended.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan"
+    },
+    {
+     "front": "Which Defender for Endpoint capabilities do both Defender for Servers plans provide?",
+     "back": "Defender for Endpoint Plan 2 capabilities, including EDR.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/faq-defender-for-servers"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o5-q1",
+     "type": "hotspot",
+     "difficulty": 2,
+     "question": "Select the lowest Defender for Servers plan that provides each capability.",
+     "dropdowns": [
+      {
+       "label": "Defender for Endpoint EDR",
+       "options": [
+        "Plan 1",
+        "Plan 2"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Agent-based vulnerability scanning",
+       "options": [
+        "Plan 1",
+        "Plan 2"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "File integrity monitoring",
+       "options": [
+        "Plan 1",
+        "Plan 2"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Agentless malware scanning",
+       "options": [
+        "Plan 1",
+        "Plan 2"
+       ],
+       "answer": 1
+      }
+     ],
+     "explanation": "EDR and agent-based vulnerability scanning through Defender for Endpoint are in Plan 1. File integrity monitoring and agentless malware scanning are Plan 2-only features.",
+     "sources": [
+      {
+       "title": "Defender for Servers",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-servers-overview"
+      },
+      {
+       "title": "Select a Defender for Servers plan and deployment scope",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/plan-defender-for-servers-select-plan"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o5-q2",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Fabrikam enables Defender for Servers Plan 2 and onboards 50 on-premises servers by installing the Defender for Endpoint agent directly. OS update assessment and OS baseline misconfiguration assessment aren't available for them.",
+     "question": "What should you do to get the full Plan 2 feature set?",
+     "options": [
+      "Onboard the servers to Azure Arc",
+      "Switch the subscription to Plan 1",
+      "Enable Defender CSPM",
+      "Reinstall the Defender for Endpoint agent with the unified solution"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "With direct Defender for Endpoint onboarding, Plan 2 adds only premium Defender Vulnerability Management features on top of Plan 1. OS updates assessment and MCSB OS baseline assessment apply only to machines onboarded with Azure Arc, so onboarding the servers to Arc unlocks them. Plan 1 has fewer features. Defender CSPM doesn't add these server features to non-Arc machines. Reinstalling Defender for Endpoint doesn't change the onboarding method.",
+     "sources": [
+      {
+       "title": "Protect your servers with Defender for Servers",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan"
+      },
+      {
+       "title": "Defender for Servers",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-servers-overview"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o5-q3",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "You connect an AWS account to Defender for Cloud and want Arc auto-provisioning on EC2 instances. Which two prerequisites are required? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Owner role on the Azure subscription",
+      "AWS SSM Agent with the AmazonSSMManagedInstanceCore policy on the instances",
+      "A public IP address on every EC2 instance",
+      "The Log Analytics agent on every EC2 instance"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Arc autoprovisioning requires the Owner role on the Azure subscription and the SSM Agent on instances; without SSM, autoprovisioning can't proceed. Public IPs aren't required; Arc network requirements must be met. The Log Analytics agent was retired in August 2024.",
+     "sources": [
+      {
+       "title": "Connect AWS accounts to Microsoft Defender for Cloud",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/quickstart-onboard-aws"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o6",
+   "summary": "Once Defender for Servers is on, you tune its settings: vulnerability assessment with integrated Defender Vulnerability Management (agent-based through Defender for Endpoint, and agentless in Plan 2), the Endpoint protection setting that deploys the Defender for Endpoint sensor for EDR, and Plan 2 extras such as file integrity monitoring. When a machine has both agent-based and agentless results, Defender for Cloud shows the agent-based results because they are fresher.",
+   "keyFacts": [
+    {
+     "fact": "Vulnerability assessment and Defender for Endpoint integration are enabled by default when you enable Plan 1 or Plan 2; you modify them in Environment settings > Defender for Servers > Settings and monitoring.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/configure-servers-coverage"
+    },
+    {
+     "fact": "Agentless vulnerability scanning is available only in Plan 2; agent-based scanning through the Defender for Endpoint sensor is available in Plan 1 and Plan 2.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/auto-deploy-vulnerability-assessment"
+    },
+    {
+     "fact": "Hybrid behavior: machines with both agent-based and agentless scanning show agent-based results only, for better freshness.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/auto-deploy-vulnerability-assessment"
+    },
+    {
+     "fact": "Turn on EDR deployment under Settings and monitoring > Endpoint protection; Linux machines get the MDE.Linux extension, verified with mdatp health. First-time onboarding in a tenant can take up to 12 hours.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-defender-for-endpoint"
+    },
+    {
+     "fact": "BYOL vulnerability assessment (Qualys, Rapid7) is being deprecated; migrate to Microsoft Defender Vulnerability Management.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/deploy-vulnerability-assessment-byol-vm"
+    },
+    {
+     "fact": "File integrity monitoring requires Plan 2, isn't on by default, and collects data with the Defender for Endpoint agent (near real time) and agentless scanning (24-hour cadence), storing change events in a Log Analytics workspace.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/file-integrity-monitoring-overview"
+    }
+   ],
+   "portalPath": "Azure portal > Microsoft Defender for Cloud > Environment settings > (subscription) > Defender plans > Servers > Settings > Settings and monitoring",
+   "lab": {
+    "title": "Confirm EDR and vulnerability scanning on a Linux VM",
+    "steps": [
+     "With Defender for Servers enabled, open Defender for Cloud > Environment settings > subscription > Servers > Settings.",
+     "Under Settings and monitoring, confirm Endpoint protection and Vulnerability assessment for machines are On; select Save if you change anything.",
+     "Wait up to 12 hours for first-time tenant onboarding, then open the Linux VM's Extensions + applications blade and look for MDE.Linux.",
+     "On the VM run: mdatp health",
+     "In Defender for Cloud, open Recommendations and review the vulnerability findings reported for the VM."
+    ],
+    "verify": "mdatp health shows healthy : true and licensed : true, MDE.Linux is listed as an extension, and vulnerability recommendations appear for the VM.",
+    "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-defender-for-endpoint"
+   },
+   "learnModules": [
+    {
+     "title": "Configure and manage threat protection by using Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/microsoft-defender-cloud-threat-protection/"
+    },
+    {
+     "title": "Review and modify Defender for Servers settings",
+     "url": "https://learn.microsoft.com/azure/defender-for-cloud/configure-servers-coverage"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which result does Defender for Cloud show when a machine has both agent-based and agentless vulnerability scans?",
+     "back": "Agent-based results only, for freshness.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/auto-deploy-vulnerability-assessment"
+    },
+    {
+     "front": "Command to verify the Defender for Endpoint sensor on Linux",
+     "back": "mdatp health",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-defender-for-endpoint"
+    },
+    {
+     "front": "Maximum first-time onboarding time for MDE integration in a tenant",
+     "back": "Up to 12 hours (later machines up to 1 hour).",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-defender-for-endpoint"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o6-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso uses Defender for Servers Plan 1. Several Azure VMs can't run the Defender for Endpoint sensor, but the team still wants vulnerability findings for them.",
+     "question": "What should you do?",
+     "options": [
+      "Upgrade to Plan 2 and use agentless vulnerability scanning",
+      "Turn on file integrity monitoring",
+      "Deploy a new BYOL Qualys scanner",
+      "Enable just-in-time VM access"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Agentless vulnerability scanning works without an agent; within Defender for Servers it's available only in Plan 2 (Defender CSPM also includes it). FIM monitors file and registry changes, not vulnerabilities. BYOL is deprecated and new solutions can't be added. JIT controls network access, not vulnerability assessment.",
+     "sources": [
+      {
+       "title": "Configure vulnerability scanning for machines",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/auto-deploy-vulnerability-assessment"
+      },
+      {
+       "title": "Enable vulnerability scanning with a BYOL solution",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/deploy-vulnerability-assessment-byol-vm"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o6-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "Endpoint protection (Defender for Endpoint integration) is enabled by default when you turn on Defender for Servers.",
+       "answer": true
+      },
+      {
+       "text": "File integrity monitoring is turned on by default with Plan 2.",
+       "answer": false
+      },
+      {
+       "text": "Defender for Cloud automatically reassigns a device that's onboarded to a different Defender for Endpoint organization.",
+       "answer": false
+      }
+     ],
+     "explanation": "MDE integration is on by default with a Defender for Servers plan, so statement 1 is true. FIM can be enabled with Plan 2 but isn't on by default, so statement 2 is false. Devices in another MDE organization aren't automatically reassigned; you must offboard them first, so statement 3 is false.",
+     "sources": [
+      {
+       "title": "Review and modify Defender for Servers settings",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/configure-servers-coverage"
+      },
+      {
+       "title": "Enable Defender for Endpoint integration",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enable-defender-for-endpoint"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o6-q3",
+     "type": "single",
+     "difficulty": 2,
+     "question": "An analyst needs to view vulnerability findings from integrated Defender Vulnerability Management in Defender for Cloud. Which built-in role does Learn document for viewing findings, with least privilege?",
+     "options": [
+      "Security Reader",
+      "Owner at the subscription level",
+      "Contributor on each VM",
+      "Key Vault Reader"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Learn lists Security Reader to view findings (and Owner at resource group level to deploy the scanner). Owner at subscription level would work but grants far more than needed. Contributor on each VM isn't the documented requirement and is excessive. Key Vault Reader is unrelated.",
+     "sources": [
+      {
+       "title": "Enable vulnerability scanning with Microsoft Defender Vulnerability Management",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/deploy-vulnerability-assessment-defender-vulnerability-management"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o7",
+   "summary": "Agentless machine scanning takes snapshots of VM disks and analyzes them out of band, so no agent or network connectivity is needed and VM performance isn't affected. It provides software inventory, vulnerability assessment, secrets scanning, EDR configuration checks and, with Plan 2, malware scanning. It's on by default with Defender for Servers Plan 2 or Defender CSPM, and you can exclude machines using tags.",
+   "keyFacts": [
+    {
+     "fact": "Agentless scanning is available in Defender CSPM and Defender for Servers Plan 2; malware scanning is only in Defender for Servers Plan 2. It covers Azure VMs, AWS EC2 and GCP compute instances.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+    },
+    {
+     "fact": "Defender for Cloud snapshots the OS and data disks, keeps the copy in the same region, analyzes it in an isolated scanning environment, and deletes the snapshot once metadata is collected (typically minutes).",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+    },
+    {
+     "fact": "In Azure, the built-in VM scanner operator role is used; scanning CMK-encrypted disks needs extra Key Vault key read, wrap and unwrap permissions.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+    },
+    {
+     "fact": "Exclude machines by entering tag:value pairs under Environment settings > plan Settings > Agentless scanning for machines > Edit configuration; excluded machines are skipped during discovery.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/exclude-machines-agentless-scanning"
+    },
+    {
+     "fact": "Only machines that are running during a scheduled scan are scanned; allow up to 24 hours for results after enabling or changing permissions.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/enable-agentless-scanning-vms"
+    }
+   ],
+   "portalPath": "Azure portal > Microsoft Defender for Cloud > Environment settings > (subscription/connector) > Defender for Servers or Defender CSPM > Settings > Agentless scanning for machines > Edit configuration",
+   "lab": {
+    "title": "Exclude a VM from agentless scanning with a tag",
+    "steps": [
+     "Add the tag ExcludeScan:true to a test VM (VM > Tags).",
+     "Open Defender for Cloud > Environment settings and select the subscription.",
+     "Next to Defender for Servers Plan 2, select Settings and confirm Agentless scanning for machines is On.",
+     "Select Edit configuration, enter tag name ExcludeScan and value true, and select Save.",
+     "After the next scan cycle, check the VM's vulnerability recommendations."
+    ],
+    "verify": "The tagged VM no longer receives agentless scan results while other running VMs continue to get findings within 24 hours.",
+    "source": "https://learn.microsoft.com/azure/defender-for-cloud/exclude-machines-agentless-scanning"
+   },
+   "learnModules": [
+    {
+     "title": "Agentless machine scanning",
+     "url": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+    },
+    {
+     "title": "Configure and manage threat protection by using Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/microsoft-defender-cloud-threat-protection/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which plans include agentless machine scanning?",
+     "back": "Defender for Servers Plan 2 and Defender CSPM (malware scanning only in Servers Plan 2).",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+    },
+    {
+     "front": "How do you exclude machines from agentless scanning?",
+     "back": "Add tag:value pairs in the agentless scanning configuration of the plan settings.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/exclude-machines-agentless-scanning"
+    },
+    {
+     "front": "Built-in Azure role used for agentless disk snapshots",
+     "back": "VM scanner operator.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o7-q1",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "Which three capabilities does agentless machine scanning provide? Each correct answer presents a complete solution. Choose three.",
+     "options": [
+      "Software inventory",
+      "Secrets scanning",
+      "Malware scanning with Microsoft Defender Antivirus",
+      "Just-in-time access to management ports"
+     ],
+     "answer": [
+      0,
+      1,
+      2
+     ],
+     "explanation": "Agentless scanning provides software inventory, vulnerability assessment, secrets scanning, EDR configuration checks and malware scanning with Microsoft Defender Antivirus (Plan 2). Just-in-time access is a network control applied through NSG and Azure Firewall rules, not a disk-snapshot scanning capability.",
+     "sources": [
+      {
+       "title": "Agentless machine scanning",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+      },
+      {
+       "title": "Enable just-in-time access",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enable-just-in-time-access"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o7-q2",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso enabled agentless scanning. A VM that's deallocated every night and started only at weekends rarely shows updated findings.",
+     "question": "What is the most likely reason?",
+     "options": [
+      "Agentless scanning only scans machines that are running during the scheduled scan",
+      "The VM doesn't have the Defender for Endpoint sensor",
+      "Snapshots can't be taken of Premium SSD (v1) disks",
+      "The VM needs a public IP for the scanner"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Learn's troubleshooting guidance says only machines running during the scheduled scan are scanned; stopped or deallocated machines are skipped that cycle. Agentless scanning doesn't need any agent. Premium SSD (v1) isn't an unsupported disk type; only UltraSSD_LRS, PremiumV2_LRS and AKS ephemeral OS disks are. The scan needs no network connectivity to the VM.",
+     "sources": [
+      {
+       "title": "Enable agentless machine scanning",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/enable-agentless-scanning-vms"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o7-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "The disk snapshot used for agentless scanning may be copied to another region for analysis.",
+       "answer": false
+      },
+      {
+       "text": "Scanning disks encrypted with customer-managed keys needs extra Key Vault permissions.",
+       "answer": true
+      },
+      {
+       "text": "Agentless scanning affects VM performance during the scan.",
+       "answer": false
+      }
+     ],
+     "explanation": "The copied snapshot stays in the same region as the VM, so statement 1 is false. CMK disk coverage needs Key Vault key read, wrap and unwrap actions, so statement 2 is true. The scan is out of band and doesn't affect the VM, so statement 3 is false.",
+     "sources": [
+      {
+       "title": "Agentless machine scanning",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/concept-agentless-data-collection"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o8",
+   "summary": "Trusted Launch protects Generation 2 VMs against bootkits, rootkits and kernel malware with Secure Boot, a virtual TPM and boot integrity monitoring. It's selected through the VM's security type (Standard, Trusted launch, or Confidential). Trusted Launch is the default for new Gen2 VMs created in the portal, CLI and PowerShell. Integrity monitoring installs the Guest Attestation extension so Defender for Cloud can attest boot health and alert on failures.",
+   "keyFacts": [
+    {
+     "fact": "Secure Boot ensures only signed OS boot components (boot loader, kernel, kernel drivers) load; if an image isn't signed by a trusted publisher the VM fails to boot.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    },
+    {
+     "fact": "The vTPM is TPM 2.0 compliant, runs outside the VM's reach, measures the whole boot chain and enables remote attestation.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    },
+    {
+     "fact": "Boot integrity monitoring requires Secure Boot and vTPM plus the Guest Attestation extension; enable it in the portal at VM > Configuration > Security type > Integrity monitoring, or with --enable-integrity-monitoring in the CLI.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/boot-integrity-monitoring-overview"
+    },
+    {
+     "fact": "Defender for Cloud recommends enabling Secure Boot, vTPM and the Guest Attestation extension, and raises a medium-severity alert when VM attestation fails; attestation fails if Secure Boot is disabled.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    },
+    {
+     "fact": "Create a Trusted Launch VM with az vm create --security-type TrustedLaunch --enable-secure-boot true --enable-vtpm true; updating Secure Boot or vTPM on an existing VM triggers a reboot.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch-portal"
+    },
+    {
+     "fact": "Trusted Launch doesn't increase VM pricing; Managed Image and Linux VM hibernation aren't supported, and Gen1 VMs can be upgraded to Gen2 Trusted Launch.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    }
+   ],
+   "portalPath": "Azure portal > Virtual machines > (VM) > Settings > Configuration > Security type (Secure Boot, vTPM, Integrity monitoring)",
+   "lab": {
+    "title": "Deploy a Trusted Launch VM with integrity monitoring",
+    "steps": [
+     "In Cloud Shell run: az group create -n rg-tl-lab -l eastus",
+     "Run: az vm create -g rg-tl-lab -n vmTL1 --image Ubuntu2204 --size Standard_D2s_v5 --security-type TrustedLaunch --enable-secure-boot true --enable-vtpm true --enable-integrity-monitoring --generate-ssh-keys",
+     "In the portal open vmTL1 > Configuration and review the Security type section.",
+     "Open Extensions + applications and confirm the Guest Attestation extension is installed.",
+     "In Defender for Cloud, check the VM's recommendations for Secure Boot, vTPM and guest attestation."
+    ],
+    "verify": "The VM Overview shows security type Trusted launch with integrity monitoring Enabled, and the Guest Attestation extension is provisioned successfully.",
+    "source": "https://learn.microsoft.com/azure/virtual-machines/boot-integrity-monitoring-overview"
+   },
+   "learnModules": [
+    {
+     "title": "Trusted Launch for Azure virtual machines",
+     "url": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    },
+    {
+     "title": "Implement virtual machine host security in Azure",
+     "url": "https://learn.microsoft.com/training/paths/implement-host-security/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Three components of Trusted Launch",
+     "back": "Secure Boot, vTPM and boot integrity monitoring.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    },
+    {
+     "front": "Extension needed for boot integrity monitoring",
+     "back": "Guest Attestation extension.",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/boot-integrity-monitoring-overview"
+    },
+    {
+     "front": "VM generation required for Trusted Launch",
+     "back": "Generation 2 (Gen1 VMs can be upgraded to Gen2-Trusted launch).",
+     "source": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o8-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "VM1 is a Trusted Launch VM with Secure Boot and vTPM enabled. Defender for Cloud shows a low-severity recommendation for VM1 related to boot integrity.",
+     "question": "What should you do to let Defender for Cloud attest VM1's boot integrity?",
+     "options": [
+      "Install the Guest Attestation extension (enable integrity monitoring)",
+      "Enable encryption at host",
+      "Disable Secure Boot",
+      "Convert VM1 to a Generation 1 VM"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "With Secure Boot and vTPM on but no attestation extension, Defender for Cloud recommends installing Guest Attestation to enable boot integrity monitoring. Encryption at host protects disk data, not boot attestation. Disabling Secure Boot causes attestation to fail. Trusted Launch requires Gen2, so converting to Gen1 removes the protection.",
+     "sources": [
+      {
+       "title": "Trusted Launch for Azure virtual machines",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o8-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about Trusted Launch, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "Trusted Launch increases the hourly price of the VM.",
+       "answer": false
+      },
+      {
+       "text": "Changing Secure Boot or vTPM settings on an existing VM triggers a reboot.",
+       "answer": true
+      },
+      {
+       "text": "VMs created from the Azure portal default to Trusted Launch for supported Gen2 images and sizes.",
+       "answer": true
+      }
+     ],
+     "explanation": "Trusted Launch doesn't increase existing VM pricing, so statement 1 is false. Updating Secure Boot and vTPM settings triggers an auto-reboot, so statement 2 is true. Portal, CLI and PowerShell create Gen2 VMs with Trusted Launch by default, so statement 3 is true.",
+     "sources": [
+      {
+       "title": "Trusted Launch for Azure virtual machines",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+      },
+      {
+       "title": "Deploy a virtual machine with Trusted Launch enabled",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch-portal"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o8-q3",
+     "type": "hotspot",
+     "difficulty": 2,
+     "question": "Match each threat or requirement to the Trusted Launch component that addresses it.",
+     "dropdowns": [
+      {
+       "label": "Prevent an unsigned bootkit from loading",
+       "options": [
+        "Secure Boot",
+        "vTPM",
+        "Boot integrity monitoring"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Store keys and boot measurements in a dedicated secure vault",
+       "options": [
+        "Secure Boot",
+        "vTPM",
+        "Boot integrity monitoring"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Receive a Defender for Cloud alert when the boot chain deviates from a trusted baseline",
+       "options": [
+        "Secure Boot",
+        "vTPM",
+        "Boot integrity monitoring"
+       ],
+       "answer": 2
+      }
+     ],
+     "explanation": "Secure Boot blocks unsigned boot components. The vTPM is a secure vault for keys and measurements. Boot integrity monitoring uses attestation to alert in Defender for Cloud when the boot log deviates. Each other option performs a different role.",
+     "sources": [
+      {
+       "title": "Trusted Launch for Azure virtual machines",
+       "url": "https://learn.microsoft.com/azure/virtual-machines/trusted-launch"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d3s2o9",
+   "summary": "Azure Machine Configuration (formerly guest configuration) audits and optionally enforces settings inside Azure VMs and Arc-enabled servers, delivered through Azure Policy. Azure VMs need the Machine Configuration extension and a system-assigned managed identity, which the 'Deploy prerequisites to enable Guest Configuration policies on virtual machines' initiative deploys at scale. Arc servers already include the agent. Assignment types control whether settings are only audited, applied once and monitored, or automatically corrected.",
+   "keyFacts": [
+    {
+     "fact": "Azure VMs need the machine configuration extension and a system-assigned managed identity; Arc-enabled servers don't need the extension because it's included in the Connected Machine agent.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+    },
+    {
+     "fact": "Assign the initiative 'Deploy prerequisites to enable Guest Configuration policies on virtual machines' to a management group, subscription or resource group to deploy the extension and identity at scale.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+    },
+    {
+     "fact": "Assignment types: Audit (report only), ApplyAndMonitor (apply once, then report drift without correcting), ApplyAndAutoCorrect (apply and correct drift at the next evaluation). The property is case sensitive.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/concepts/remediation-options"
+    },
+    {
+     "fact": "Configurations that change machines use the DeployIfNotExists effect; selecting Create a remediation task during assignment applies the configuration to existing noncompliant machines.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/concepts/remediation-options"
+    },
+    {
+     "fact": "The machine configuration agent can't exceed 5% CPU, for both built-in and custom definitions, and the same limit applies to the service in the Arc Connected Machine agent.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+    },
+    {
+     "fact": "Machine Configuration supports up to 50 guest assignments per machine, and per-setting results appear on the Guest assignments page.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/01-overview-concepts"
+    },
+    {
+     "fact": "Defender for Servers Plan 2 uses the Machine Configuration extension to assess OS configuration against Microsoft Cloud Security Benchmark compute baselines.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-servers-overview"
+    }
+   ],
+   "portalPath": "Azure portal > Policy > Definitions (Category: Guest Configuration) > Assign; Azure portal > Policy > Guest assignments",
+   "lab": {
+    "title": "Deploy Machine Configuration prerequisites and assign a baseline audit",
+    "steps": [
+     "In the Azure portal go to Policy > Definitions and search for the initiative 'Deploy prerequisites to enable Guest Configuration policies on virtual machines'.",
+     "Assign it to a test resource group, select Create a remediation task on the Remediation tab, and create the assignment.",
+     "Search for a built-in Guest Configuration audit definition, for example one auditing Windows machines against the Azure compute security baseline, and assign it to the same resource group.",
+     "Wait for evaluation, then open Policy > Guest assignments.",
+     "Select the VM's guest assignment and review the per-setting compliance results."
+    ],
+    "verify": "Test VMs show a system-assigned managed identity and the Machine Configuration extension, and Guest assignments shows Compliant or NonCompliant with per-setting reasons.",
+    "source": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+   },
+   "learnModules": [
+    {
+     "title": "What is Azure Machine Configuration?",
+     "url": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/01-overview-concepts"
+    },
+    {
+     "title": "Remediation options for machine configuration",
+     "url": "https://learn.microsoft.com/azure/governance/machine-configuration/concepts/remediation-options"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Assignment type that applies a configuration and fixes drift automatically",
+     "back": "ApplyAndAutoCorrect.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/concepts/remediation-options"
+    },
+    {
+     "front": "Two prerequisites for Machine Configuration on Azure VMs",
+     "back": "The Machine Configuration extension and a system-assigned managed identity.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+    },
+    {
+     "front": "Policy effect used by Machine Configuration definitions that change machine settings",
+     "back": "DeployIfNotExists.",
+     "source": "https://learn.microsoft.com/azure/governance/machine-configuration/concepts/remediation-options"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d3s2o9-q1",
+     "type": "hotspot",
+     "difficulty": 2,
+     "question": "Select the Machine Configuration assignment type for each requirement.",
+     "dropdowns": [
+      {
+       "label": "Report whether TLS 1.0 is disabled without changing servers",
+       "options": [
+        "Audit",
+        "ApplyAndMonitor",
+        "ApplyAndAutoCorrect"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Set a registry value once, then flag any later change for manual review",
+       "options": [
+        "Audit",
+        "ApplyAndMonitor",
+        "ApplyAndAutoCorrect"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Keep a setting enforced and revert drift automatically",
+       "options": [
+        "Audit",
+        "ApplyAndMonitor",
+        "ApplyAndAutoCorrect"
+       ],
+       "answer": 2
+      }
+     ],
+     "explanation": "Audit only reports state. ApplyAndMonitor applies once and reports drift as NonCompliant without correcting it unless remediation is triggered. ApplyAndAutoCorrect corrects drift at the next evaluation. Each other choice either changes servers when it shouldn't or doesn't fix drift.",
+     "sources": [
+      {
+       "title": "Remediation options for machine configuration",
+       "url": "https://learn.microsoft.com/azure/governance/machine-configuration/concepts/remediation-options"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o9-q2",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Fabrikam assigns a Machine Configuration policy to 200 Azure VMs, but none report guest assignment results.",
+     "question": "What should you deploy first?",
+     "options": [
+      "The 'Deploy prerequisites to enable Guest Configuration policies on virtual machines' initiative",
+      "The Azure Monitor Agent on each VM",
+      "Defender for Servers Plan 1",
+      "A user-assigned managed identity only, with no extension"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Azure VMs need the Machine Configuration extension and a system-assigned managed identity, which this initiative deploys at scale. AMA is for data collection, not Machine Configuration. Defender for Servers Plan 1 doesn't install the extension. A user-assigned identity alone doesn't meet the documented requirement for the extension and system-assigned identity.",
+     "sources": [
+      {
+       "title": "Azure Machine Configuration prerequisites",
+       "url": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+      }
+     ]
+    },
+    {
+     "id": "d3s2o9-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement, select Yes if true or No if false.",
+     "statements": [
+      {
+       "text": "Azure Arc-enabled servers need the Machine Configuration VM extension installed separately.",
+       "answer": false
+      },
+      {
+       "text": "The Machine Configuration agent is limited to 5% CPU on the machine.",
+       "answer": true
+      },
+      {
+       "text": "Disabling the guest configuration agent on an Arc server prevents Machine Configuration policies from running there.",
+       "answer": true
+      }
+     ],
+     "explanation": "The extension isn't required for Arc servers because it's included in the Connected Machine agent, so statement 1 is false. The agent can't exceed 5% CPU, so statement 2 is true. azcmagent config set guestconfiguration.enabled false disables the machine configuration agent, so policies can't run, making statement 3 true.",
+     "sources": [
+      {
+       "title": "Azure Machine Configuration prerequisites",
+       "url": "https://learn.microsoft.com/azure/governance/machine-configuration/overview/02-setup-prerequisites"
+      },
+      {
+       "title": "Configuration and remote access",
+       "url": "https://learn.microsoft.com/azure/azure-arc/servers/security-machine-configuration"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

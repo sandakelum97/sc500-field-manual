@@ -1,0 +1,485 @@
+{
+ "sectionId": "d2s2",
+ "objectives": [
+  {
+   "objectiveId": "d2s2o1",
+   "summary": "Platform-level security for Azure SQL covers who can authenticate (Microsoft Entra-only authentication), how data at rest is protected (TDE with service-managed or customer-managed keys), and which networks can reach the logical server (IP firewall rules, virtual network rules, private endpoints, and the Public network access switch). Exam questions focus on role boundaries, prerequisites that cause a setup to fail, and what each network control actually blocks.",
+   "keyFacts": [
+    {
+     "fact": "Turning on Microsoft Entra-only authentication disables SQL authentication for the whole logical server or managed instance; existing SQL logins are not deleted, they simply can no longer connect. A Microsoft Entra admin must be set first or the setting stays unavailable.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication"
+    },
+    {
+     "fact": "SQL Security Manager can toggle Microsoft Entra-only authentication but can't set or remove the Microsoft Entra admin. SQL Server Contributor can set the admin but can't toggle the setting, and SQL Managed Instance Contributor can't toggle it either. A role such as Contributor holds both permissions.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication"
+    },
+    {
+     "fact": "For customer-managed TDE, the key vault (or Managed HSM) must have soft delete and purge protection enabled, otherwise TDE protector setup fails. The server identity needs get, wrapKey and unwrapKey (or the Key Vault Crypto Service Encryption User role under Azure RBAC).",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview?view=azuresql"
+    },
+    {
+     "fact": "If the server loses access to the customer-managed TDE protector, databases become inaccessible after 30 minutes. If access is restored within 30 minutes the database self-heals within the next hour; after that, extra recovery steps are needed.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview?view=azuresql"
+    },
+    {
+     "fact": "Server-level IP firewall rules apply to every database on the server and are stored in master; database-level IP firewall rules can be created only with T-SQL (sp_set_database_firewall_rule) and only after a first server-level rule exists.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/firewall-configure?view=azuresql"
+    },
+    {
+     "fact": "Allow Azure services and resources to access this server adds a 0.0.0.0 rule that admits any Azure resource, including resources in other customers' subscriptions. Setting Public network access to Disable allows only private endpoint connections and blocks edits to firewall rules (error 42101).",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/network-access-controls-overview?view=azuresql"
+    }
+   ],
+   "portalPath": "Azure portal > SQL servers > (server) > Settings > Microsoft Entra ID (Support only Microsoft Entra authentication); Security > Networking (Public access / Private access); Security > Transparent data encryption",
+   "lab": {
+    "title": "Lock down a logical SQL server with Entra-only auth and network restrictions",
+    "steps": [
+     "In a trial subscription, create a resource group RG-Sql1 and a logical server sqlcontoso01 with a Basic database DB1 (SQL authentication admin SqlAdmin1).",
+     "In Cloud Shell, set yourself as Microsoft Entra admin: az ad signed-in-user show --query id -o tsv, then az sql server ad-admin create -g RG-Sql1 -s sqlcontoso01 --display-name <your UPN> --object-id <id>.",
+     "Enable Entra-only authentication: az sql server ad-only-auth enable -g RG-Sql1 -n sqlcontoso01, then confirm with az sql server ad-only-auth get -g RG-Sql1 -n sqlcontoso01.",
+     "In the portal open the server > Security > Networking > Public access, choose Selected networks, select Add your client IPv4 address, and make sure Allow Azure services and resources to access this server is unchecked. Save.",
+     "Connect with the Query editor using SqlAdmin1 (SQL auth) and note the failure; connect again with Microsoft Entra authentication and run SELECT SERVERPROPERTY('IsExternalAuthenticationOnly').",
+     "Set public network access to Disabled: az sql server update -g RG-Sql1 -n sqlcontoso01 --set publicNetworkAccess=Disabled, then try to add a firewall rule in the portal and observe that it is refused.",
+     "Delete RG-Sql1 when finished."
+    ],
+    "verify": "SERVERPROPERTY('IsExternalAuthenticationOnly') returns 1, the SQL login fails while the Entra sign-in succeeds, and firewall rule edits are rejected after public access is disabled.",
+    "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication"
+   },
+   "learnModules": [
+    {
+     "title": "Secure your Azure SQL Database",
+     "url": "https://learn.microsoft.com/training/modules/secure-your-azure-sql-database/"
+    },
+    {
+     "title": "Plan and implement security for Azure SQL Database and Azure SQL Managed Instance",
+     "url": "https://learn.microsoft.com/training/modules/security-azure-sql-database-azure-sql-managed-instance/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which built-in role can toggle Microsoft Entra-only authentication but cannot set the Microsoft Entra admin?",
+     "back": "SQL Security Manager. SQL Server Contributor is the opposite: it can set the admin but cannot toggle Entra-only authentication.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication"
+    },
+    {
+     "front": "Two Key Vault settings that must be on before you can set a customer-managed TDE protector",
+     "back": "Soft delete and purge protection. Azure SQL validates both and the setup fails if either is missing.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview?view=azuresql"
+    },
+    {
+     "front": "How can database-level IP firewall rules be created?",
+     "back": "Only with T-SQL (sp_set_database_firewall_rule), and only after at least one server-level firewall rule exists.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/firewall-configure?view=azuresql"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s2o1-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso has a logical server named SQL1. Admin1 holds the SQL Server Contributor role on SQL1 and has already configured a Microsoft Entra admin. Admin1 tries to enable Support only Microsoft Entra authentication and gets an authorization error.",
+     "question": "Which role should you assign to Admin1 so they can enable the setting while following least privilege?",
+     "options": [
+      "SQL DB Contributor",
+      "SQL Security Manager",
+      "Owner on the subscription",
+      "Key Vault Crypto Officer"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "SQL Security Manager includes the azureADOnlyAuthentications actions, so it can enable or disable Microsoft Entra-only authentication. SQL DB Contributor manages databases, not server security settings. Owner would work but grants far more than needed, which breaks least privilege. Key Vault Crypto Officer is a Key Vault data-plane role and has nothing to do with SQL authentication settings.",
+     "sources": [
+      {
+       "title": "Microsoft Entra-only authentication with Azure SQL",
+       "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication"
+      }
+     ]
+    },
+    {
+     "id": "d2s2o1-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "Fabrikam enables Microsoft Entra-only authentication on logical server SQL2, which already has a SQL login named AppLogin1. The server is also configured for customer-managed TDE with a key in KV1.",
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "AppLogin1 is deleted from the server when Microsoft Entra-only authentication is enabled.",
+       "answer": false
+      },
+      {
+       "text": "A Microsoft Entra user with the right permissions can still create new SQL logins, but those logins cannot connect.",
+       "answer": true
+      },
+      {
+       "text": "If SQL2 loses access to the key in KV1 for 20 minutes and access is then restored, the databases heal automatically without extra recovery steps.",
+       "answer": true
+      }
+     ],
+     "explanation": "Enabling Entra-only authentication does not remove existing SQL logins; it only stops them connecting, so statement 1 is false. Entra principals can still create SQL logins and users, but new ones cannot connect either, so statement 2 is true. With customer-managed TDE the database goes inaccessible after 30 minutes without key access; if access returns within 30 minutes, it heals automatically within the next hour, so statement 3 is true.",
+     "sources": [
+      {
+       "title": "Microsoft Entra-only authentication with Azure SQL",
+       "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-azure-ad-only-authentication"
+      },
+      {
+       "title": "Azure SQL TDE with customer-managed key",
+       "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/transparent-data-encryption-byok-overview?view=azuresql"
+      }
+     ]
+    },
+    {
+     "id": "d2s2o1-q3",
+     "type": "hotspot",
+     "difficulty": 3,
+     "scenario": "Contoso has logical server SQL3. Requirements: (1) only clients in VNet1 may connect, via a private IP; (2) a security team must block any future attempt to add public IP firewall rules; (3) Azure resources in other tenants must never be able to reach the server.",
+     "question": "Select the configuration that meets each requirement.",
+     "dropdowns": [
+      {
+       "label": "Private connectivity from VNet1",
+       "options": [
+        "A virtual network service endpoint rule",
+        "A private endpoint in VNet1",
+        "A server-level IP firewall rule for VNet1's address range"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "Block changes to public firewall rules",
+       "options": [
+        "Set Public network access to Disable",
+        "Set Minimum TLS version to 1.2",
+        "Remove all database-level firewall rules"
+       ],
+       "answer": 0
+      },
+      {
+       "label": "Stop access from other tenants' Azure resources",
+       "options": [
+        "Leave Allow Azure services and resources to access this server enabled",
+        "Turn off Allow Azure services and resources to access this server",
+        "Enable Microsoft Entra-only authentication"
+       ],
+       "answer": 1
+      }
+     ],
+     "explanation": "A private endpoint gives the server a private IP inside VNet1; a service endpoint still targets the public endpoint, and an IP firewall rule for private addresses does not create private connectivity. Setting Public network access to Disable allows only private endpoint traffic and rejects firewall rule changes (error 42101); minimum TLS and removing database rules do neither. The Allow Azure services option adds a 0.0.0.0 rule admitting any Azure resource regardless of subscription, so it must be off; Entra-only auth controls authentication, not network reachability.",
+     "sources": [
+      {
+       "title": "Azure SQL Database network access controls",
+       "url": "https://learn.microsoft.com/azure/azure-sql/database/network-access-controls-overview?view=azuresql"
+      },
+      {
+       "title": "Connectivity settings",
+       "url": "https://learn.microsoft.com/azure/azure-sql/database/connectivity-settings?view=azuresql"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d2s2o2",
+   "summary": "Azure SQL Database auditing is configured as a server policy or a database policy and writes to Azure Storage, Log Analytics, Event Hubs, or any combination. Azure SQL Managed Instance instead uses SQL Server Audit created with T-SQL, writing to a blob URL or to EXTERNAL_MONITOR through a diagnostic setting. Typical traps are double auditing, the hidden diagnostic setting, and which targets MI supports.",
+   "keyFacts": [
+    {
+     "fact": "A server auditing policy applies to every existing and newly created database on the server and always applies, whatever the database setting says. Enabling database auditing as well does not override it; the database is audited twice in parallel.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/auditing-server-level-database-level?view=azuresql"
+    },
+    {
+     "fact": "Microsoft recommends server-level auditing only, and adding database-level auditing only when one database needs a different destination, retention, or event set.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/auditing-server-level-database-level?view=azuresql"
+    },
+    {
+     "fact": "The default audit policy uses BATCH_COMPLETED_GROUP, SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP and FAILED_DATABASE_AUTHENTICATION_GROUP, which capture all queries, stored procedures, and successful and failed logins.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/auditing-setup?view=azuresql"
+    },
+    {
+     "fact": "Auditing to Log Analytics or Event Hubs creates a diagnostic setting named SQLSecurityAuditEvents_xxxx. Deleting it makes auditing fail silently, so Microsoft suggests alerting on its deletion.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/auditing-setup?view=azuresql"
+    },
+    {
+     "fact": "In SQL Managed Instance, SQL Audit works at the server level and supports only the URL (Azure Blob storage) or EXTERNAL_MONITOR targets; TO FILE and Windows logs are not supported.",
+     "source": "https://learn.microsoft.com/sql/t-sql/statements/create-server-audit-transact-sql?view=sql-server-ver17"
+    },
+    {
+     "fact": "Failed logins that use Microsoft Entra authentication don't appear in the SQL audit log because the request never reaches the database; review them in Microsoft Entra sign-in logs instead.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/auditing-overview?view=azuresql"
+    }
+   ],
+   "portalPath": "Azure portal > SQL servers > (server) > Security > Auditing (server policy); SQL databases > (database) > Security > Auditing (database policy); SQL managed instances > (instance) > Monitoring > Diagnostic settings (SQLSecurityAuditEvents)",
+   "lab": {
+    "title": "Enable server-level auditing to Log Analytics and query the events",
+    "steps": [
+     "Create a Log Analytics workspace LAW-Audit1 in the same region as an existing logical server and database (for example sqlcontoso01/DB1 from the previous lab).",
+     "In the portal open SQL servers > sqlcontoso01 > Security > Auditing, set Enable Azure SQL Auditing to On, select Log Analytics, choose LAW-Audit1 and Save.",
+     "Open SQL databases > DB1 > Security > Auditing and confirm that database-level auditing is Off (the server policy already covers it).",
+     "Open sqlcontoso01 > Monitoring > Diagnostic settings (on the master database) and note the auto-created SQLSecurityAuditEvents_ setting; do not delete it.",
+     "Run a few queries against DB1 with the Query editor, wait about 10 minutes, then in LAW-Audit1 run: AzureDiagnostics | where Category == 'SQLSecurityAuditEvents' | take 50.",
+     "Optional: in the database Auditing blade select View audit logs to see the same events."
+    ],
+    "verify": "The KQL query returns BATCH_COMPLETED and authentication events for DB1 even though only the server policy is enabled.",
+    "source": "https://learn.microsoft.com/azure/azure-sql/database/auditing-setup?view=azuresql"
+   },
+   "learnModules": [
+    {
+     "title": "Plan and implement security for Azure SQL Database and Azure SQL Managed Instance",
+     "url": "https://learn.microsoft.com/training/modules/security-azure-sql-database-azure-sql-managed-instance/"
+    },
+    {
+     "title": "Implement compliance controls for sensitive data",
+     "url": "https://learn.microsoft.com/training/modules/implement-compliance-controls-sensitive-data/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Server auditing is on and you also enable database auditing on DB1. What happens?",
+     "back": "Both policies run side by side and DB1 is audited twice. The database policy does not override the server policy.",
+     "source": "https://learn.microsoft.com/en-us/azure/azure-sql/database/auditing-server-level-database-level?view=azuresql"
+    },
+    {
+     "front": "Which two audit targets does SQL Managed Instance support in CREATE SERVER AUDIT?",
+     "back": "TO URL (Azure Blob storage) and TO EXTERNAL_MONITOR (Event Hubs or Azure Monitor logs through a diagnostic setting). TO FILE isn't supported.",
+     "source": "https://learn.microsoft.com/sql/t-sql/statements/create-server-audit-transact-sql?view=sql-server-ver17"
+    },
+    {
+     "front": "What breaks SQL auditing to Log Analytics without any error?",
+     "back": "Deleting the auto-created diagnostic setting SQLSecurityAuditEvents_xxxx. Auditing then fails silently.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/auditing-setup?view=azuresql"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s2o2-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso has server-level auditing enabled on SQL1 to StorageAcct1. The compliance team asks for table-insert events from database Payroll only, stored in a separate Log Analytics workspace, without duplicating events for other databases.",
+     "question": "What should you do?",
+     "options": [
+      "Disable server auditing and enable database auditing on every database",
+      "Enable database-level auditing on Payroll with a custom action group targeting the Log Analytics workspace",
+      "Change the server audit policy to target the Log Analytics workspace",
+      "Create a diagnostic setting on Payroll for the SQLInsights category"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Microsoft recommends server auditing everywhere and adding database auditing only when a single database needs different event types or a different destination, which is exactly this case. Disabling server auditing and configuring every database adds overhead and risks gaps. Changing the server policy would send all databases to the new workspace. SQLInsights is a performance diagnostic category, not security auditing.",
+     "sources": [
+      {
+       "title": "Auditing policy at the server and database level",
+       "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/auditing-server-level-database-level?view=azuresql"
+      }
+     ]
+    },
+    {
+     "id": "d2s2o2-q2",
+     "type": "order",
+     "difficulty": 3,
+     "scenario": "You need SQL Managed Instance MI1 to send audit events to a Log Analytics workspace.",
+     "question": "Put the actions in the correct order.",
+     "items": [
+      "On MI1, add a diagnostic setting that sends the SQLSecurityAuditEvents category to the Log Analytics workspace",
+      "Connect to MI1 and run CREATE SERVER AUDIT [Audit1] TO EXTERNAL_MONITOR",
+      "Create and enable a server audit specification or database audit specification for Audit1",
+      "Run ALTER SERVER AUDIT [Audit1] WITH (STATE = ON)"
+     ],
+     "explanation": "Learn's procedure for MI is: create the diagnostic setting with SQLSecurityAuditEvents first, create the server audit TO EXTERNAL_MONITOR, create the audit specification(s), and finally turn the server audit on. Without the diagnostic setting, EXTERNAL_MONITOR has nowhere to deliver events. Server-level portal auditing (the Azure SQL Database method) is not how MI auditing works.",
+     "sources": [
+      {
+       "title": "Get started with Azure SQL Managed Instance auditing",
+       "url": "https://learn.microsoft.com/azure/azure-sql/managed-instance/auditing-configure?view=azuresql"
+      }
+     ]
+    },
+    {
+     "id": "d2s2o2-q3",
+     "type": "multi",
+     "difficulty": 2,
+     "question": "Which statements about Azure SQL auditing are true? Each correct answer presents a complete solution. Choose two.",
+     "options": [
+      "A server auditing policy also applies to databases created after the policy was enabled.",
+      "SQL Managed Instance audits can be written to a local file path with TO FILE.",
+      "Failed sign-ins that use Microsoft Entra authentication are recorded in the SQL audit log.",
+      "Audit logs written to storage are in .xel format and can be opened in SQL Server Management Studio."
+     ],
+     "answer": [
+      0,
+      3
+     ],
+     "explanation": "A server policy covers all existing and new databases, and storage audit logs are .xel files in append blobs that SSMS can open. MI can't use TO FILE because it can't reach Windows file shares; only URL and EXTERNAL_MONITOR are supported. Failed Entra sign-ins never reach the database, so they appear in Microsoft Entra sign-in logs, not the SQL audit log.",
+     "sources": [
+      {
+       "title": "Auditing for Azure SQL Database",
+       "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/auditing-overview?view=azuresql"
+      },
+      {
+       "title": "SQL Server Audit in Azure SQL Managed Instance",
+       "url": "https://learn.microsoft.com/azure/azure-sql/managed-instance/auditing?view=azuresql"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d2s2o3",
+   "summary": "Defender for Databases in Microsoft Defender for Cloud is a bundle of four separately priced plans: Azure SQL Databases, SQL Servers on Machines, Open-Source Relational Databases, and Azure Cosmos DB. Turning on the Databases plan at subscription level turns on all four. Know which engines and APIs each plan covers and what Defender for SQL adds (vulnerability assessment and Advanced Threat Protection).",
+   "keyFacts": [
+    {
+     "fact": "Turning the Databases plan On under Defender for Cloud > Environment settings enables all four database plans and protects every supported database in the subscription; each plan is billed separately.",
+     "source": "https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-enable-database-protections"
+    },
+    {
+     "fact": "Defender for Open-Source Relational Databases protects Azure Database for PostgreSQL Flexible Server and Azure Database for MySQL Flexible Server (all pricing tiers), plus AWS RDS Aurora PostgreSQL, Aurora MySQL, PostgreSQL, MySQL and MariaDB. It isn't supported on Azure Arc-enabled machines.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-databases-introduction"
+    },
+    {
+     "fact": "Defender for Azure Cosmos DB supports only the API for NoSQL; Cassandra, MongoDB, Table and Gremlin APIs aren't supported. It doesn't read account data and doesn't affect performance.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-defender-for-cosmos"
+    },
+    {
+     "fact": "Cosmos DB alerts cover potential SQL injection, anomalous access (for example Tor exit nodes or suspicious IPs) and suspicious activity such as unusual account key listing.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-defender-for-cosmos"
+    },
+    {
+     "fact": "Microsoft Defender for SQL bundles SQL vulnerability assessment and Advanced Threat Protection for Azure SQL Database and SQL Managed Instance. Enabling or managing it needs SQL Security Manager or a database/server admin role.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/azure-defender-for-sql?view=azuresql"
+    },
+    {
+     "fact": "When the Defender for Azure SQL plan is enabled, Defender for Cloud turns on Advanced Threat Protection and vulnerability assessment with the express configuration, which doesn't need a customer storage account.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/sql-azure-vulnerability-assessment-enable"
+    }
+   ],
+   "portalPath": "Azure portal > Microsoft Defender for Cloud > Environment settings > (subscription) > Defender plans > Databases > Select types",
+   "lab": {
+    "title": "Enable Defender for Databases and generate sample alerts",
+    "steps": [
+     "In a trial subscription open Microsoft Defender for Cloud > Environment settings and select the subscription.",
+     "On the Defender plans page, set Databases to On, then select Select types and review the four plans (Azure SQL Databases, SQL servers on machines, Open-source relational databases, Azure Cosmos DB). Save.",
+     "Open an existing logical server (or create one) > Security > Microsoft Defender for Cloud and confirm that vulnerability assessment shows the express configuration.",
+     "Back in Defender for Cloud, open Security alerts > Sample alerts, select the subscription and the Azure SQL Databases and Azure Cosmos DB plans, and select Create sample alerts.",
+     "After a few minutes, open the generated alerts and review the description, MITRE tactic and recommended actions.",
+     "Set the Databases plan back to Off if you don't want charges after the trial."
+    ],
+    "verify": "Sample alerts for SQL and Cosmos DB appear on the Security alerts page, and the SQL server shows Defender for SQL as enabled.",
+    "source": "https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-enable-database-protections"
+   },
+   "learnModules": [
+    {
+     "title": "Plan for cloud workload protections using Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/what-is-azure-defender/"
+    },
+    {
+     "title": "Implement compliance controls for sensitive data",
+     "url": "https://learn.microsoft.com/training/modules/implement-compliance-controls-sensitive-data/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which Azure Cosmos DB API is supported by Defender for Azure Cosmos DB?",
+     "back": "Only Azure Cosmos DB for NoSQL. MongoDB, Cassandra, Table and Gremlin aren't supported.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/concept-defender-for-cosmos"
+    },
+    {
+     "front": "Which Azure open-source database deployment options does Defender for Open-Source Relational Databases cover?",
+     "back": "Azure Database for PostgreSQL Flexible Server and Azure Database for MySQL Flexible Server, all pricing tiers.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-databases-introduction"
+    },
+    {
+     "front": "What two capabilities make up Microsoft Defender for SQL?",
+     "back": "SQL vulnerability assessment and SQL Advanced Threat Protection.",
+     "source": "https://learn.microsoft.com/azure/azure-sql/database/azure-defender-for-sql?view=azuresql"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s2o3-q1",
+     "type": "multi",
+     "difficulty": 2,
+     "scenario": "Contoso runs Cosmos1 (API for MongoDB), Cosmos2 (API for NoSQL), Pg1 (Azure Database for PostgreSQL Flexible Server), My1 (a self-installed MySQL server running on an Azure Arc-enabled machine in a branch office) and SqlDb1 (Azure SQL Database). The Databases plan is enabled on the subscription.",
+     "question": "Which resources receive threat protection from Defender for Databases? Each correct answer presents part of the solution. Choose three.",
+     "options": [
+      "Cosmos1",
+      "Cosmos2",
+      "Pg1",
+      "My1",
+      "SqlDb1"
+     ],
+     "answer": [
+      1,
+      2,
+      4
+     ],
+     "explanation": "Defender for Cosmos DB covers only the API for NoSQL, so Cosmos2 is protected and Cosmos1 (MongoDB API) isn't. PostgreSQL Flexible Server is covered by the open-source relational plan. The open-source plan supports PaaS only and isn't supported on Azure Arc-enabled machines, so My1, a self-hosted MySQL on an Arc-enabled machine, isn't covered. SqlDb1 is covered by Defender for Azure SQL Databases.",
+     "sources": [
+      {
+       "title": "Overview of Microsoft Defender for Azure Cosmos DB",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/concept-defender-for-cosmos"
+      },
+      {
+       "title": "Overview of Microsoft Defender for Open-Source Relational Databases",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-databases-introduction"
+      }
+     ]
+    },
+    {
+     "id": "d2s2o3-q2",
+     "type": "yesno",
+     "difficulty": 1,
+     "question": "For each statement, select Yes if it is true.",
+     "statements": [
+      {
+       "text": "Turning the Databases plan On at subscription level enables all four database protection plans.",
+       "answer": true
+      },
+      {
+       "text": "Defender for Azure Cosmos DB reads document contents to detect SQL injection.",
+       "answer": false
+      },
+      {
+       "text": "Vulnerability assessment with the express configuration requires you to supply a storage account.",
+       "answer": false
+      }
+     ],
+     "explanation": "Enabling the Databases plan activates all four plans (each billed separately). Defender for Cosmos DB doesn't access account data; it analyzes the service's telemetry stream. Express configuration uses Microsoft-managed storage, so no customer storage account is needed; the classic configuration is the one that needs storage.",
+     "sources": [
+      {
+       "title": "Protect your databases with Defender for Databases",
+       "url": "https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-enable-database-protections"
+      },
+      {
+       "title": "Overview of Microsoft Defender for Azure Cosmos DB",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/concept-defender-for-cosmos"
+      },
+      {
+       "title": "Enable vulnerability assessment (Express)",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/sql-azure-vulnerability-assessment-enable"
+      }
+     ]
+    },
+    {
+     "id": "d2s2o3-q3",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Fabrikam's security team receives an alert titled Suspicious extraction of Azure Cosmos DB account keys.",
+     "question": "Why is this alert treated as potentially high impact even though its listed severity is only Informational?",
+     "options": [
+      "Account keys only allow reading metadata, so the alert is informational",
+      "An extracted account key gives full control over the account's databases and data",
+      "The alert means SQL injection has already succeeded",
+      "The alert indicates the Cosmos DB firewall was disabled"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Learn explains that the extracted access key provides full control over the associated databases and data, which is why a non-legitimate source is high impact. Keys aren't limited to metadata. SQL injection alerts are separate (CosmosDB_SqlInjection.*). The alert is about key listing by a suspicious principal, not a firewall change.",
+     "sources": [
+      {
+       "title": "Alerts for Azure Cosmos DB",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/alerts-azure-cosmos-db"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

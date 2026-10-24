@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SC-500 Field Manual</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Interactive SC-500 study kit built only from Microsoft Learn: objectives, notes, labs, exam-style practice, flashcards and mock exams.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#dashboard" aria-label="SC-500 Field Manual home">
+      <span class="brand-code">SC-500</span>
+      <span class="brand-name">Field Manual</span>
+    </a>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#dashboard" data-view="dashboard">Overview</a>
+      <a href="#learn" data-view="learn">Learn</a>
+      <a href="#practice" data-view="practice">Practice</a>
+      <a href="#exam" data-view="exam">Mock exam</a>
+      <a href="#cards" data-view="cards">Flashcards</a>
+      <a href="#review" data-view="review">Review</a>
+      <a href="#sync" data-view="sync">Sync</a>
+    </nav>
+    <span class="sync-pill" id="syncPill" title="Where your progress is saved">Saved in this browser</span>
+  </div>
+</header>
+
+<main id="app" class="wrap">
+  <p class="loading" id="loading">Loading objectives and question bank…</p>
+</main>
+
+<footer class="foot wrap">
+  <p>Every note, answer and explanation links to the Microsoft Learn page it comes from. Questions are original practice items, not real exam content. Objectives retrieved from the <a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-500" target="_blank" rel="noopener">official SC-500 study guide</a>; check it for changes before your exam.</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

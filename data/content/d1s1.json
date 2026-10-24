@@ -1,0 +1,911 @@
+{
+ "sectionId": "d1s1",
+ "objectives": [
+  {
+   "objectiveId": "d1s1o1",
+   "summary": "Privileged Identity Management (PIM) gives just-in-time, time-bound and approval-based access to Microsoft Entra roles, Azure resource roles and groups (PIM for Groups). Instead of standing (active) admin rights, users get eligible assignments they must activate, optionally with MFA, justification, ticket number, approval or a Conditional Access authentication context. Role settings (PIM policies) are defined per role, and exam questions often test their limits, default approvers and licensing.",
+   "keyFacts": [
+    {
+     "fact": "Activation maximum duration in PIM role settings can be set from 1 to 24 hours.",
+     "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+    },
+    {
+     "fact": "If 'Require approval to activate' is on but no approvers are selected, active Privileged Role Administrators and Global Administrators become the default approvers. Approvers don't need any role themselves.",
+     "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+    },
+    {
+     "fact": "You need at least the Privileged Role Administrator role to manage PIM role settings for a Microsoft Entra role. Settings apply per role, so every assignment of the same role shares the same settings.",
+     "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+    },
+    {
+     "fact": "PIM needs Microsoft Entra ID P2 or Microsoft Entra ID Governance licenses for users with eligible or time-bound assignments, for approvers, and for access reviewers. If the license expires, eligible Entra role assignments are removed, but permanent assignments stay.",
+     "source": "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"
+    },
+    {
+     "fact": "Eligible Azure role assignments can be created for users but not for service principals or managed identities, because they can't perform activation. On Access control (IAM), eligible assignments are supported at management group, subscription and resource group scope, but not at resource scope.",
+     "source": "https://learn.microsoft.com/azure/role-based-access-control/pim-integration#pim-functionality"
+    },
+    {
+     "fact": "If you require a Conditional Access authentication context on activation, don't scope that CA policy to the directory role itself. During activation the user doesn't hold the role yet, so the policy wouldn't apply. Scope it to all users or to the eligible users.",
+     "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+    }
+   ],
+   "portalPath": "Microsoft Entra admin center > ID Governance > Privileged Identity Management > Microsoft Entra roles > Roles > (select role) > Role settings > Edit",
+   "lab": {
+    "title": "Make a user eligible for Security Reader with MFA and approval",
+    "steps": [
+     "In a trial tenant with Microsoft Entra ID P2 (or a P2 trial), sign in to the Microsoft Entra admin center as a Privileged Role Administrator.",
+     "Create a test user, User1, and a second user, Approver1.",
+     "Go to ID Governance > Privileged Identity Management > Microsoft Entra roles > Roles and select Security Reader.",
+     "Select Role settings > Edit. Set Activation maximum duration to 2 hours, select 'On activation, require multifactor authentication' and 'Require justification on activation'.",
+     "Select 'Require approval to activate' and add Approver1 as the approver. Select Update.",
+     "Go to Assignments > Add assignments, select Security Reader, choose User1, set Assignment type to Eligible and finish the wizard.",
+     "Sign in as User1 in a private browser window, open PIM > My roles > Eligible assignments and select Activate. Enter a justification and submit.",
+     "Sign in as Approver1, open PIM > Approve requests and approve the request."
+    ],
+    "verify": "As User1, PIM > My roles > Active assignments shows Security Reader with an end time no more than 2 hours away. The Microsoft Entra audit log shows the activation request and approval.",
+    "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+   },
+   "learnModules": [
+    {
+     "title": "Plan and implement privileged access",
+     "url": "https://learn.microsoft.com/training/modules/plan-implement-privileged-access/"
+    },
+    {
+     "title": "Examine Privileged Identity Management in Microsoft Entra ID",
+     "url": "https://learn.microsoft.com/training/modules/examine-privileged-identity-management/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "PIM activation maximum duration: allowed range?",
+     "back": "1 to 24 hours, set per role in Role settings.",
+     "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+    },
+    {
+     "front": "PIM approval is required but no approvers are configured. Who approves?",
+     "back": "Active Privileged Role Administrators and Global Administrators become the default approvers.",
+     "source": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+    },
+    {
+     "front": "Can a managed identity get an eligible Azure role assignment through PIM?",
+     "back": "No. Eligible assignments are for users only. Service principals and managed identities can't perform activation.",
+     "source": "https://learn.microsoft.com/azure/role-based-access-control/pim-integration#pim-functionality"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d1s1o1-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso uses PIM for the Exchange Administrator role. Admin1 turns on 'Require approval to activate' but forgets to select any approvers.",
+     "question": "Who can approve activation requests for Exchange Administrator?",
+     "options": [
+      "Nobody. Activation requests stay pending until an approver is added.",
+      "Active Privileged Role Administrators and Global Administrators",
+      "Any user who currently holds an active Exchange Administrator assignment",
+      "The requester's manager, as listed in Microsoft Entra ID"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "When no specific approvers are selected, PIM uses active Privileged Role Administrators and Global Administrators as the default approvers. Requests don't simply stay pending, so option A is wrong, although a tenant can lock itself out if every one of those admins is only eligible. Other holders of the same role don't become approvers, and PIM role settings don't route approval to the user's manager.",
+     "sources": [
+      {
+       "title": "Configure Microsoft Entra role settings in PIM",
+       "url": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o1-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "Fabrikam is planning a rollout of PIM for Microsoft Entra roles and Azure resource roles.",
+     "question": "For each statement, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "You can set the activation maximum duration of a Microsoft Entra role to 36 hours.",
+       "answer": false
+      },
+      {
+       "text": "You can create an eligible Azure role assignment for the system-assigned managed identity of VM1.",
+       "answer": false
+      },
+      {
+       "text": "Users who approve PIM activation requests need a Microsoft Entra ID P2 or Microsoft Entra ID Governance license.",
+       "answer": true
+      }
+     ],
+     "explanation": "Statement 1 is No. The activation maximum duration range is 1 to 24 hours. Statement 2 is No. Eligible assignments can't be created for service principals or managed identities, because those identities can't perform activation. Statement 3 is Yes. The licensing guidance lists users who approve or reject activation requests among the users who need P2 or ID Governance licenses.",
+     "sources": [
+      {
+       "title": "Configure Microsoft Entra role settings in PIM",
+       "url": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+      },
+      {
+       "title": "Eligible and time-bound role assignments in Azure RBAC",
+       "url": "https://learn.microsoft.com/azure/role-based-access-control/pim-integration#pim-functionality"
+      },
+      {
+       "title": "Microsoft Entra ID Governance licensing fundamentals",
+       "url": "https://learn.microsoft.com/entra/id-governance/licensing-fundamentals#privileged-identity-management"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o1-q3",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Contoso wants users to activate the Security Administrator role only from an Intune-compliant device. Admin1 creates a Conditional Access authentication context named c1. Admin1 creates a CA policy that targets c1 and the Security Administrator directory role and requires a compliant device. Admin1 then configures c1 in the PIM role settings. Eligible users find that they can still activate the role from non-compliant devices.",
+     "question": "What should Admin1 change?",
+     "options": [
+      "Scope the CA policy to all users or to the eligible users, not to the Security Administrator directory role",
+      "Turn on 'On activation, require multifactor authentication' in addition to the authentication context",
+      "Set the CA policy to report-only mode so PIM's backup MFA protection applies",
+      "Reduce the activation maximum duration to 1 hour"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "During activation the user doesn't have the role yet, so a CA policy scoped to both the authentication context and the directory role never applies. Scope it to all users or to the eligible users. Requiring MFA doesn't enforce device compliance. A report-only policy never enforces controls, and the backup MFA mechanism isn't triggered for report-only policies anyway. Activation duration has no effect on device compliance.",
+     "sources": [
+      {
+       "title": "Configure Microsoft Entra role settings in PIM",
+       "url": "https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d1s1o2",
+   "summary": "Conditional Access (CA) is Microsoft Entra's Zero Trust policy engine. It evaluates signals such as user, location, device, application and risk after first-factor authentication, then blocks or grants access with controls like MFA, authentication strength or a compliant device. You need to know how multiple policies combine, how block takes precedence, how report-only mode behaves, and the licensing (P1, with P2 for risk-based policies).",
+   "keyFacts": [
+    {
+     "fact": "Conditional Access policies are enforced after first-factor authentication completes. They aren't a front-line defense against attacks like denial of service.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview"
+    },
+    {
+     "fact": "When several policies apply to a user, all of them must be satisfied. Within one policy, all assignments are combined with AND.",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-policies#overview"
+    },
+    {
+     "fact": "Enforcement happens in two phases. If any applicable policy uses the Block grant control, enforcement stops and the user is blocked. Otherwise the user is prompted for unmet controls in order, starting with MFA and then a compliant device.",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-policies#overview"
+    },
+    {
+     "fact": "When a policy has multiple grant controls, the default is 'Require all the selected controls'. You can switch to 'Require one of the selected controls'.",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant#grant-access"
+    },
+    {
+     "fact": "Report-only policies are evaluated but never enforce grant or session controls. Users aren't prompted for MFA or blocked, and results such as 'Report-only: User action required' show up in the sign-in logs.",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-report-only#policy-evaluation-results"
+    },
+    {
+     "fact": "Conditional Access requires Microsoft Entra ID P1. Sign-in risk and user risk policies need Microsoft Entra ID P2 (ID Protection). If the licenses expire, existing policies keep working but can't be updated.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview"
+    }
+   ],
+   "portalPath": "Microsoft Entra admin center > Entra ID > Conditional Access > Policies > New policy",
+   "lab": {
+    "title": "Require MFA for a pilot group with a report-only rollout",
+    "steps": [
+     "In a trial tenant (Microsoft Entra ID P1 or P2 trial), sign in to the Microsoft Entra admin center as a Conditional Access Administrator.",
+     "Create a security group named CA-Pilot and add a test user, User1. Create or identify an emergency access account to exclude.",
+     "Go to Entra ID > Conditional Access > Policies > New policy and name it 'Pilot - Require MFA'.",
+     "Under Users, include CA-Pilot and exclude the emergency access account.",
+     "Under Target resources, include All resources (formerly 'All cloud apps').",
+     "Under Grant, select Grant access > Require multifactor authentication, then select Select.",
+     "Set Enable policy to Report-only and select Create.",
+     "Sign in as User1 in a private window, then review the sign-in log entry's Report-only tab.",
+     "After you check the results, change Enable policy to On and sign in again as User1."
+    ],
+    "verify": "In report-only mode, the sign-in log shows the policy as 'Report-only: User action required' and User1 isn't prompted. After you switch the policy to On, User1 is prompted for MFA and the log shows the policy as Success.",
+    "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-report-only#policy-evaluation-results"
+   },
+   "learnModules": [
+    {
+     "title": "Plan, implement, and administer Conditional Access",
+     "url": "https://learn.microsoft.com/training/modules/plan-implement-administer-conditional-access/"
+    },
+    {
+     "title": "Get started with identity and access labs",
+     "url": "https://learn.microsoft.com/training/modules/get-started-identity-access-labs/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Two CA policies apply. One requires MFA, the other requires a compliant device. What must the user do?",
+     "back": "Satisfy both: complete MFA and use a compliant device. All applicable policies must be met.",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-policies#overview"
+    },
+    {
+     "front": "Default behavior when a CA policy has several grant controls selected?",
+     "back": "Require all the selected controls (AND).",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant#grant-access"
+    },
+    {
+     "front": "License needed for sign-in risk based CA policies?",
+     "back": "Microsoft Entra ID P2 (ID Protection). Basic CA needs P1.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d1s1o2-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "User1 is in scope of three enabled Conditional Access policies for Exchange Online. Policy1 requires MFA. Policy2 requires a compliant device. Policy3 blocks access from locations outside the named location 'HQ'. User1 signs in from a hotel outside HQ on a compliant device and completes MFA.",
+     "question": "What is the result?",
+     "options": [
+      "Access is granted, because User1 satisfied MFA and device compliance",
+      "Access is blocked",
+      "User1 is prompted to register a new MFA method",
+      "Access is granted with a limited session, because the policies conflict"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Every applicable policy must be satisfied, and a policy with the Block control stops enforcement immediately. Policy3 applies because User1 is outside HQ, so access is blocked. Meeting the other two policies doesn't override a block. CA doesn't fall back to a limited session when policies conflict, and nothing in the scenario triggers MFA registration.",
+     "sources": [
+      {
+       "title": "Build a Conditional Access policy",
+       "url": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-policies#overview"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o2-q2",
+     "type": "hotspot",
+     "difficulty": 2,
+     "scenario": "Admin1 creates a CA policy and selects two grant controls: Require multifactor authentication and Require device to be marked as compliant. Admin1 doesn't change the multiple-controls option. The policy is set to Report-only.",
+     "question": "Select the correct answer for each item.",
+     "dropdowns": [
+      {
+       "label": "With the default option, a user must satisfy",
+       "options": [
+        "Either control",
+        "Both controls",
+        "Only the first control listed"
+       ],
+       "answer": 1
+      },
+      {
+       "label": "While the policy is in Report-only, a user who hasn't done MFA",
+       "options": [
+        "Is prompted for MFA",
+        "Is blocked",
+        "Isn't prompted, and the result is logged"
+       ],
+       "answer": 2
+      }
+     ],
+     "explanation": "By default, Conditional Access requires all selected controls, so both MFA and a compliant device are needed. 'Either control' only applies if Admin1 chooses 'Require one of the selected controls', and there's no 'first control only' mode. Report-only policies are evaluated but don't enforce controls, so the user isn't prompted or blocked. The sign-in log records a result such as 'Report-only: User action required'.",
+     "sources": [
+      {
+       "title": "Conditional Access: Grant",
+       "url": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant#grant-access"
+      },
+      {
+       "title": "Analyze Conditional Access policy impact",
+       "url": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-report-only#policy-evaluation-results"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o2-q3",
+     "type": "multi",
+     "difficulty": 1,
+     "scenario": "Fabrikam has Microsoft Entra ID P1 licenses only.",
+     "question": "Which two Conditional Access capabilities can Fabrikam use without buying more Microsoft Entra licenses? Each correct answer presents a complete solution. Choose two.",
+     "options": [
+      "Require MFA for users with administrative roles",
+      "Block sign-ins that ID Protection rates as high sign-in risk",
+      "Block legacy authentication protocols",
+      "Require a password change for users that ID Protection flags as high user risk"
+     ],
+     "answer": [
+      0,
+      2
+     ],
+     "explanation": "Requiring MFA for admins and blocking legacy authentication are common CA policies that only need P1. Policies based on sign-in risk or user risk need Microsoft Entra ID Protection, which is a P2 feature, so options B and D aren't available with P1 alone.",
+     "sources": [
+      {
+       "title": "What is Conditional Access?",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d1s1o3",
+   "summary": "Authentication methods (Microsoft Authenticator, passkeys/FIDO2, Windows Hello for Business, certificate-based authentication, Temporary Access Pass, SMS, voice and more) are managed centrally in the Authentication methods policy. The legacy MFA and SSPR policies can no longer manage methods as of September 30, 2025. Authentication strengths let Conditional Access require specific method combinations, such as phishing-resistant MFA, and Temporary Access Pass bootstraps passwordless registration.",
+   "keyFacts": [
+    {
+     "fact": "Beginning September 30, 2025, authentication methods can't be managed in the legacy MFA and SSPR policies. Use the Authentication methods policy instead. Authentication Policy Administrator is the least-privileged role that can edit it.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods-manage"
+    },
+    {
+     "fact": "Until migration is complete, a user enabled for a method in any policy (Authentication methods, legacy MFA or legacy SSPR) can register and use it. To block a method you must disable it in all of them. In the 'Migration Complete' state, legacy settings are ignored.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods-manage"
+    },
+    {
+     "fact": "There are three built-in authentication strengths: Multifactor authentication strength, Passwordless MFA strength and Phishing-resistant MFA strength. Phishing-resistant allows Windows Hello for Business or platform credential, FIDO2 security keys and multifactor certificate-based authentication. You can't modify the built-in strengths.",
+     "source": "https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strengths#built-in-and-custom-authentication-strengths"
+    },
+    {
+     "fact": "Temporary Access Pass (TAP) policy defaults: minimum lifetime 1 hour, maximum lifetime 8 hours, default lifetime 1 hour, one-time use False, length 8 characters. The allowed lifetime range is 10 minutes to 43,200 minutes (30 days).",
+     "source": "https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass#enable-the-temporary-access-pass-policy"
+    },
+    {
+     "fact": "You can create a TAP for any user (except external guests, who can't be issued one), but only users included in the TAP authentication method policy can sign in with it. With a one-time TAP, the user must finish registering a passwordless method within 10 minutes of signing in.",
+     "source": "https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass#limitations"
+    },
+    {
+     "fact": "Windows Hello for Business satisfies the 'Require multifactor authentication' grant control in Conditional Access.",
+     "source": "https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant#grant-access"
+    }
+   ],
+   "portalPath": "Microsoft Entra admin center > Entra ID > Authentication methods > Policies",
+   "lab": {
+    "title": "Enable Temporary Access Pass and require phishing-resistant MFA for admins",
+    "steps": [
+     "Sign in to the Microsoft Entra admin center as an Authentication Policy Administrator.",
+     "Go to Entra ID > Authentication methods > Policies and select Temporary Access Pass. Enable it and target a test group, TAP-Users, that contains User1.",
+     "Select Configure. Leave the default lifetime at 1 hour and set One-time use to Yes. Select Update, then Save.",
+     "In the same Policies list, enable Passkey (FIDO2) for TAP-Users.",
+     "As an Authentication Administrator, open User1 > Authentication methods > Add authentication method > Temporary Access Pass and create a pass.",
+     "In a private window, sign in as User1 at https://aka.ms/mysecurityinfo with the TAP and register a passkey (if a device or key is available).",
+     "As a Conditional Access Administrator, create a report-only CA policy for a test admin group with Grant > Require authentication strength > Phishing-resistant MFA strength."
+    ],
+    "verify": "User1's Authentication methods page lists the TAP (and later the passkey). After one use, the one-time TAP shows as not usable. The CA sign-in log tab shows the authentication strength policy being evaluated.",
+    "source": "https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass#enable-the-temporary-access-pass-policy"
+   },
+   "learnModules": [
+    {
+     "title": "Manage security controls for identity and access",
+     "url": "https://learn.microsoft.com/training/modules/manage-security-controls-identity-access/"
+    },
+    {
+     "title": "Get started with identity and access labs",
+     "url": "https://learn.microsoft.com/training/modules/get-started-identity-access-labs/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "TAP default maximum lifetime and allowed range?",
+     "back": "Default maximum lifetime is 8 hours. Allowed range is 10 minutes to 30 days (43,200 minutes).",
+     "source": "https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass#enable-the-temporary-access-pass-policy"
+    },
+    {
+     "front": "Name the three built-in authentication strengths.",
+     "back": "Multifactor authentication strength, Passwordless MFA strength, Phishing-resistant MFA strength.",
+     "source": "https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strengths#built-in-and-custom-authentication-strengths"
+    },
+    {
+     "front": "Least-privileged role to edit the Authentication methods policy?",
+     "back": "Authentication Policy Administrator.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods-manage"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d1s1o3-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso wants every sign-in to the Azure portal by members of the Cloud-Admins group to use a FIDO2 security key, Windows Hello for Business or certificate-based authentication. SMS and Authenticator push must not satisfy the requirement.",
+     "question": "Which grant control should you configure in the Conditional Access policy?",
+     "options": [
+      "Require multifactor authentication",
+      "Require authentication strength: Phishing-resistant MFA strength",
+      "Require authentication strength: Multifactor authentication strength",
+      "Require approved client app"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "The built-in Phishing-resistant MFA strength allows only Windows Hello for Business or platform credential, FIDO2 security keys and multifactor certificate-based authentication. 'Require multifactor authentication' and the Multifactor authentication strength accept the same set of combinations, which includes SMS and push. 'Require approved client app' is about client apps, not authentication methods.",
+     "sources": [
+      {
+       "title": "Conditional Access authentication strengths",
+       "url": "https://learn.microsoft.com/entra/identity/authentication/concept-authentication-strengths#built-in-and-custom-authentication-strengths"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o3-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "Fabrikam enables Temporary Access Pass in the Authentication methods policy and leaves all TAP settings at their defaults. The policy targets the group New-Hires.",
+     "question": "For each statement, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "By default, a TAP can be used more than once during its validity period.",
+       "answer": true
+      },
+      {
+       "text": "An administrator can create a TAP for a user outside New-Hires, and that user can sign in with it.",
+       "answer": false
+      },
+      {
+       "text": "An individual TAP can be given a lifetime longer than the policy's maximum lifetime.",
+       "answer": false
+      }
+     ],
+     "explanation": "Statement 1 is Yes. One-time use defaults to False, so a TAP can be used multiple times while it's valid. Statement 2 is No. You can create a TAP for any user, but only users included in the policy can sign in with it. Statement 3 is No. Individual passes can override the default lifetime, but only within the policy's minimum and maximum.",
+     "sources": [
+      {
+       "title": "Configure Temporary Access Pass",
+       "url": "https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass#enable-the-temporary-access-pass-policy"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o3-q3",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Contoso's migration state is Migration in Progress. In the Authentication methods policy, Voice call is enabled only for the group Helpdesk. Users outside Helpdesk are still able to sign in with a voice call.",
+     "question": "What is the most likely cause?",
+     "options": [
+      "Voice call is still enabled in the legacy MFA policy ('Call to phone') or the legacy SSPR policy ('Mobile phone')",
+      "Authentication strengths override the Authentication methods policy",
+      "Security defaults are turned on and always allow voice calls",
+      "Group targeting in the Authentication methods policy is ignored until the policy is 20 KB in size"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Before 'Migration Complete', Microsoft Entra ID honors all three policies. A user enabled for a method in any of them can use it. Users outside the group are most likely enabled through 'Call to phone' in the legacy MFA policy or 'Mobile phone' in the legacy SSPR policy. Authentication strengths restrict methods for a resource, they don't enable extra ones. The scenario doesn't involve security defaults. The 20 KB figure is a policy size limit that can stop you saving the policy, not a targeting threshold.",
+     "sources": [
+      {
+       "title": "Manage authentication methods for Microsoft Entra ID",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods-manage"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d1s1o4",
+   "summary": "An app registration creates the global application object in its home tenant. A service principal (shown under Enterprise applications) is the local instance in each tenant that uses the app, and it controls what the app can do there and who can access it. Securing app identity means choosing strong credentials (federated credentials or certificates rather than client secrets), using 'Assignment required' to limit who gets tokens, and knowing which object to edit for each setting.",
+   "keyFacts": [
+    {
+     "fact": "An application object has a one-to-many relationship with service principals. One service principal exists in each tenant where the app is used. Registering in the portal creates both automatically, but with Microsoft Graph APIs the service principal is a separate step.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals"
+    },
+    {
+     "fact": "There are three service principal types: application, managed identity and legacy. Managed identity service principals have no app object and can't be modified directly.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals"
+    },
+    {
+     "fact": "Certificates are recommended over client secrets. Client secret lifetime is capped at 24 months, with Microsoft recommending under 12 months. The secret value is shown only once, when you create it.",
+     "source": "https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials"
+    },
+    {
+     "fact": "With 'Assignment required' set to Yes, users and other apps must be assigned to the enterprise app before they can get a token. Global Administrators can sign in regardless of this setting.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/application-properties"
+    },
+    {
+     "fact": "Setting 'Enabled for users to sign-in?' to No (accountEnabled=false) stops token issuance for everyone, including service principals that use application permissions.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/application-properties"
+    },
+    {
+     "fact": "Deleting an application object also deletes its home-tenant service principal. Restoring the app object through App registrations doesn't restore that service principal.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals"
+    }
+   ],
+   "portalPath": "Microsoft Entra admin center > Entra ID > App registrations (application object); Entra ID > Enterprise apps > All applications > (app) > Properties (service principal)",
+   "lab": {
+    "title": "Register an app, add a certificate credential and restrict sign-in",
+    "steps": [
+     "Sign in to the Microsoft Entra admin center as an Application Administrator.",
+     "Go to Entra ID > App registrations > New registration. Name it App1, choose 'Accounts in this organizational directory only' and register it.",
+     "Note the Application (client) ID. On the Overview page, select 'Managed application in local directory' to open the service principal.",
+     "In App1 > Certificates & secrets, upload a self-signed .cer test certificate. Note the thumbprint.",
+     "Optionally, create a client secret with a 6-month expiry and confirm the value is shown only once. Then delete the secret.",
+     "Go to Enterprise apps > App1 > Properties, set 'Assignment required?' to Yes and select Save.",
+     "Under Users and groups, assign only a test user, User1."
+    ],
+    "verify": "App1 > Certificates & secrets lists the certificate with its thumbprint. The enterprise app Properties page shows 'Assignment required' = Yes. A non-assigned, non-admin user who tries to sign in to the app gets an error saying they aren't assigned.",
+    "source": "https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials"
+   },
+   "learnModules": [
+    {
+     "title": "Manage security controls for identity and access",
+     "url": "https://learn.microsoft.com/training/modules/manage-security-controls-identity-access/"
+    },
+    {
+     "title": "Integrate with identity management systems",
+     "url": "https://learn.microsoft.com/training/modules/integrate-identity-management-systems/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "App registration vs enterprise application: which object is which?",
+     "back": "App registration = application object (global, home tenant). Enterprise application = service principal (local instance in each tenant).",
+     "source": "https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals"
+    },
+    {
+     "front": "Maximum client secret lifetime?",
+     "back": "24 months. Microsoft recommends less than 12 months, and certificates or federated credentials for production.",
+     "source": "https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials"
+    },
+    {
+     "front": "Which setting limits token issuance to assigned users and apps only?",
+     "back": "Assignment required = Yes, on the enterprise application (service principal).",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/application-properties"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d1s1o4-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso registered a multitenant app, HRApp, in its tenant. Administrators in Fabrikam and Adatum have consented to HRApp.",
+     "question": "How many application objects and how many service principals exist for HRApp across the three tenants?",
+     "options": [
+      "1 application object and 3 service principals",
+      "3 application objects and 3 service principals",
+      "1 application object and 2 service principals",
+      "3 application objects and 1 service principal"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "An app has exactly one application object, in its home tenant (Contoso). A service principal is created in every tenant where the app is used: Contoso's home tenant at registration, plus Fabrikam and Adatum when they consent. That's 3. Option C forgets the home tenant's service principal. Options B and D wrongly assume an application object is created in each consuming tenant.",
+     "sources": [
+      {
+       "title": "Application and service principal objects in Microsoft Entra ID",
+       "url": "https://learn.microsoft.com/en-us/entra/identity-platform/app-objects-and-service-principals"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o4-q2",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Fabrikam has an OIDC web app, App2, registered in its tenant. Only members of the group Finance should be able to get tokens for App2. Today every user in the tenant can sign in.",
+     "question": "What should you do?",
+     "options": [
+      "On the App2 app registration, remove the redirect URI",
+      "On the App2 enterprise application, set Assignment required to Yes and assign the Finance group",
+      "On the App2 enterprise application, set Visible to users to No",
+      "On the App2 enterprise application, set Enabled for users to sign-in to No"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "With 'Assignment required' set to Yes, only assigned users and apps can get tokens, so assign Finance. Removing the redirect URI breaks sign-in for everyone. 'Visible to users' only hides the app in My Apps and the Microsoft 365 launcher, it doesn't control access. 'Enabled for users to sign-in' = No stops token issuance for all users, including Finance.",
+     "sources": [
+      {
+       "title": "Properties of an enterprise application",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/application-properties"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o4-q3",
+     "type": "multi",
+     "difficulty": 1,
+     "scenario": "A developer is moving the daemon app App3 to production and asks which credential types to use.",
+     "question": "Which two credential types does Microsoft recommend for production instead of client secrets? Each correct answer presents a complete solution. Choose two.",
+     "options": [
+      "A certificate",
+      "A federated identity credential",
+      "A client secret with a 36-month lifetime",
+      "A user's password stored in the app configuration"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "Microsoft recommends certificate or federated credentials for production, because client secrets are less secure. A client secret can't be longer than 24 months, so a 36-month secret isn't possible, and it would still be a secret. Storing a user's password isn't an app credential and goes against secure practice.",
+     "sources": [
+      {
+       "title": "Add and manage application credentials in Microsoft Entra ID",
+       "url": "https://learn.microsoft.com/entra/identity-platform/how-to-add-credentials"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d1s1o5",
+   "summary": "Apps get access to data through delegated permissions (on behalf of a signed-in user) or application permissions (app roles, with no user present). User consent settings control whether, and for which apps and permissions, users can consent themselves. The admin consent workflow lets users request approval for anything they can't consent to. You need to know which role can grant which kind of consent, and that application permissions always need admin consent.",
+   "keyFacts": [
+    {
+     "fact": "By default, every user can consent to permissions that don't require admin consent. The 'microsoft-user-default-low' option limits user consent to apps from verified publishers or registered in your tenant, and to permissions you classify as low impact.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    },
+    {
+     "fact": "Changing user consent settings only affects future consent. Existing grants stay in place until you revoke them.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    },
+    {
+     "fact": "Application permissions can only be consented by an admin. They create an appRoleAssignment, while delegated consent creates an oAuth2PermissionGrant.",
+     "source": "https://learn.microsoft.com/graph/permissions-overview#permission-types"
+    },
+    {
+     "fact": "Privileged Role Administrator can grant tenant-wide admin consent for any permission on any API. Cloud Application Administrator and Application Administrator can grant consent for anything except Microsoft Graph app roles (application permissions).",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-admin-consent"
+    },
+    {
+     "fact": "Being an admin consent workflow reviewer doesn't elevate privileges. Reviewers can view, block or deny requests, but only Global Administrators can approve requests for Microsoft Graph app roles. You need Global Administrator to turn on the workflow.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-admin-consent-workflow"
+    },
+    {
+     "fact": "An app that requires user assignment must have its permissions consented by an administrator, even if user consent policies would otherwise allow it.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    }
+   ],
+   "portalPath": "Microsoft Entra admin center > Entra ID > Enterprise apps > Consent and permissions > User consent settings / Admin consent settings",
+   "lab": {
+    "title": "Restrict user consent and enable the admin consent workflow",
+    "steps": [
+     "Sign in to the Microsoft Entra admin center as a Global Administrator (required for these portal settings in a lab tenant).",
+     "Go to Entra ID > Enterprise apps > Consent and permissions > User consent settings.",
+     "Select 'Allow user consent for apps from verified publishers, for selected permissions' and save.",
+     "Open Permission classifications and classify a low-risk delegated permission, such as User.Read, as Low.",
+     "Go to Admin consent settings. Set 'Users can request admin consent to apps they are unable to consent to' to Yes.",
+     "Add Admin1 as a reviewer, turn on email notifications, set the request expiry to 7 days and save. Allow up to an hour for the change.",
+     "As a test user, open an app consent URL that requests a permission requiring admin consent, such as User.Read.All, and submit a request with a justification."
+    ],
+    "verify": "The test user sees 'Approval required' instead of a consent prompt. Admin1 sees the request under Enterprise apps > Admin consent requests > My Pending.",
+    "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-admin-consent-workflow"
+   },
+   "learnModules": [
+    {
+     "title": "Manage security controls for identity and access",
+     "url": "https://learn.microsoft.com/training/modules/manage-security-controls-identity-access/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which built-in admin roles can grant consent for Microsoft Graph application permissions?",
+     "back": "Privileged Role Administrator and Global Administrator. Cloud Application Administrator and Application Administrator can't.",
+     "source": "https://learn.microsoft.com/graph/permissions-overview#permission-types"
+    },
+    {
+     "front": "What object does consent to delegated permissions create? And application permissions?",
+     "back": "Delegated creates an oAuth2PermissionGrant. Application creates an appRoleAssignment.",
+     "source": "https://learn.microsoft.com/graph/permissions-overview#permission-types"
+    },
+    {
+     "front": "Does tightening user consent settings revoke consent users already granted?",
+     "back": "No. It only affects future consent. Revoke existing grants separately.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d1s1o5-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso's daemon app ReportSvc needs the Microsoft Graph application permission Files.Read.All. Admin1 holds the Cloud Application Administrator role. Following least privilege, you must decide who should grant tenant-wide admin consent.",
+     "question": "Which role should the person granting consent hold?",
+     "options": [
+      "Cloud Application Administrator",
+      "Application Administrator",
+      "Privileged Role Administrator",
+      "Application Developer"
+     ],
+     "answer": [
+      2
+     ],
+     "explanation": "Consent for Microsoft Graph app roles (application permissions) needs Privileged Role Administrator or Global Administrator, and Privileged Role Administrator is the less privileged of the two. Cloud Application Administrator and Application Administrator can grant consent for any permission except Microsoft Graph app roles. Application Developer can't grant tenant-wide admin consent.",
+     "sources": [
+      {
+       "title": "Grant tenant-wide admin consent to an application",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-admin-consent"
+      },
+      {
+       "title": "Overview of Microsoft Graph permissions",
+       "url": "https://learn.microsoft.com/graph/permissions-overview#permission-types"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o5-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "Fabrikam enables the admin consent workflow and lists Reviewer1, who holds no admin roles, as a reviewer.",
+     "question": "For each statement, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "Reviewer1 can deny admin consent requests.",
+       "answer": true
+      },
+      {
+       "text": "Being a reviewer lets Reviewer1 approve a request for Microsoft Graph application permissions.",
+       "answer": false
+      },
+      {
+       "text": "If Reviewer1 is added after a request was submitted, Reviewer1 can act on that earlier request.",
+       "answer": false
+      }
+     ],
+     "explanation": "Statement 1 is Yes. Reviewers can view, block or deny requests. Statement 2 is No. Being a reviewer doesn't elevate privileges, and only Global Administrators can approve requests for Microsoft Graph app roles. Statement 3 is No. New reviewers can't act on requests created before they were made reviewers.",
+     "sources": [
+      {
+       "title": "Configure the admin consent workflow",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-admin-consent-workflow"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o5-q3",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "After a consent-phishing incident at Contoso, Admin1 changes user consent settings from 'Allow user consent for apps' to 'Do not allow user consent'. The next day, the malicious app MailSync can still read the mailboxes of users who consented last week.",
+     "question": "Why does MailSync still have access, and what should Admin1 do?",
+     "options": [
+      "The change takes 30 days to apply. Wait for it to propagate.",
+      "Consent settings only affect future consent. Review and revoke the existing permission grants for MailSync.",
+      "User consent settings apply only to multitenant apps. Set Assignment required to Yes instead.",
+      "MailSync uses application permissions, which aren't affected by consent. Delete the app registration in Contoso's tenant."
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Changing user consent settings only affects future consent, and existing grants stay in place. Admin1 should review the permissions granted to MailSync and revoke them, and can also disable sign-in for the app. There's no 30-day propagation delay. Consent settings aren't limited to multitenant apps. The scenario describes user consent, which only covers delegated permissions, because users can't consent to application permissions. A third-party app's registration lives in its publisher's tenant, so Contoso can't delete it.",
+     "sources": [
+      {
+       "title": "Configure how users consent to applications",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent"
+      },
+      {
+       "title": "Overview of permissions and consent",
+       "url": "https://learn.microsoft.com/entra/identity-platform/permissions-consent-overview#types-of-permissions"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d1s1o6",
+   "summary": "Managed identities give Azure resources a Microsoft Entra identity that gets tokens without any credentials you have to store or rotate. A system-assigned identity is tied to one resource's lifecycle. A user-assigned identity is a standalone resource that can be shared across many resources and survives their deletion. You then grant the identity Azure RBAC roles (or Key Vault data-plane roles) on target resources, and code on the resource gets tokens from the local IMDS endpoint.",
+   "keyFacts": [
+    {
+     "fact": "A system-assigned identity is deleted along with its resource and can't be shared. A user-assigned identity has its own lifecycle, must be deleted explicitly, and can be attached to multiple resources. Microsoft recommends user-assigned identities for Microsoft services.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview"
+    },
+    {
+     "fact": "To assign a user-assigned identity to a VM, you need Virtual Machine Contributor and Managed Identity Operator role assignments. No Microsoft Entra directory roles are needed.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-to-configure-managed-identities#user-assigned-managed-identity"
+    },
+    {
+     "fact": "Creating a user-assigned managed identity needs the Managed Identity Contributor role. Listing or reading one needs Managed Identity Operator or Managed Identity Contributor.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/manage-user-assigned-managed-identities-powershell#create-a-user-assigned-managed-identity"
+    },
+    {
+     "fact": "On a VM, code requests tokens from IMDS at http://169.254.169.254/metadata/identity/oauth2/token with the header Metadata: true. If several user-assigned identities are attached, pass client_id, object_id or msi_res_id.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http"
+    },
+    {
+     "fact": "Managed identity tokens are cached by the back end for about 24 hours per resource URI, so permission changes can take hours to take effect. You can't force a refresh.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/managed-identities-faq#limitations"
+    },
+    {
+     "fact": "A user-assigned managed identity can't be moved to a different resource group. You have to create a new one and grant its permissions again.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/managed-identities-faq#limitations"
+    }
+   ],
+   "portalPath": "Azure portal > (VM) > Security > Identity > System assigned / User assigned",
+   "lab": {
+    "title": "Give a VM's managed identity read access to a resource group",
+    "steps": [
+     "In a free or trial subscription, create resource group RG1 and a small Linux VM, VM1, with a public IP or Bastion.",
+     "Open VM1 > Security > Identity > System assigned, set Status to On and save. Note the Object (principal) ID.",
+     "Open RG1 > Access control (IAM) > Add role assignment. Choose Reader, select Managed identity > Virtual machine > VM1 and save.",
+     "SSH to VM1 and run: curl 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/' -H Metadata:true",
+     "Copy access_token and call: curl https://management.azure.com/subscriptions/<sub-id>/resourceGroups/RG1?api-version=2016-09-01 -H \"Authorization: Bearer <token>\"",
+     "Optional: create a user-assigned identity, UAMI1, with 'az identity create -g RG1 -n UAMI1', attach it to VM1 under User assigned, and request a token with &client_id=<UAMI1 client ID>."
+    ],
+    "verify": "The ARM call returns RG1's JSON (id, name, location). VM1 appears in RG1 > Access control (IAM) > Role assignments as a managed identity with Reader.",
+    "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http"
+   },
+   "learnModules": [
+    {
+     "title": "Implement managed identities",
+     "url": "https://learn.microsoft.com/training/modules/implement-managed-identities/"
+    },
+    {
+     "title": "Implement access management for Azure resources",
+     "url": "https://learn.microsoft.com/training/modules/implement-access-management-for-azure-resources/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "IMDS token endpoint for managed identities on an Azure VM?",
+     "back": "http://169.254.169.254/metadata/identity/oauth2/token with the header Metadata: true.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http"
+    },
+    {
+     "front": "Roles needed to attach a user-assigned identity to an existing VM?",
+     "back": "Virtual Machine Contributor plus Managed Identity Operator.",
+     "source": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-to-configure-managed-identities#user-assigned-managed-identity"
+    },
+    {
+     "front": "Ten VMs, recreated often, all need the same Key Vault access. Which identity type?",
+     "back": "One user-assigned managed identity: it can be shared and keeps its permissions when the resources are recycled.",
+     "source": "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d1s1o6-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso runs a VM scale-out workload whose instances are deleted and recreated several times a day. Every instance needs the same read access to a storage account, and the permissions must not have to be reassigned each time instances are recreated.",
+     "question": "What should you use?",
+     "options": [
+      "A system-assigned managed identity on each VM",
+      "A single user-assigned managed identity attached to all instances",
+      "An app registration with a client secret stored on each VM",
+      "A system-assigned identity on the storage account"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "A user-assigned identity has an independent lifecycle and can be shared, so its role assignments survive when instances are recycled. This is a documented use case. System-assigned identities are deleted with each VM, so permissions would need reassigning every time. A client secret brings back the credential management that managed identities remove. An identity on the storage account would authenticate the storage account, not the VMs.",
+     "sources": [
+      {
+       "title": "What are managed identities for Azure resources?",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o6-q2",
+     "type": "multi",
+     "difficulty": 2,
+     "scenario": "Admin1 must attach the existing user-assigned managed identity UAMI1 to the existing VM VM1 using the Azure CLI. Admin1 currently has no roles.",
+     "question": "Which two Azure role assignments are the minimum Admin1 needs? Each correct answer presents part of the solution. Choose two.",
+     "options": [
+      "Virtual Machine Contributor",
+      "Managed Identity Operator",
+      "Owner on the subscription",
+      "Privileged Role Administrator (Microsoft Entra role)"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "The documented requirement for assigning a user-assigned identity to a VM is Virtual Machine Contributor plus Managed Identity Operator, with no Microsoft Entra directory roles needed. Owner on the subscription would work but goes well beyond least privilege. Privileged Role Administrator is a directory role that isn't needed for this Azure resource operation.",
+     "sources": [
+      {
+       "title": "Configure managed identities on Azure VMs",
+       "url": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-to-configure-managed-identities#user-assigned-managed-identity"
+      }
+     ]
+    },
+    {
+     "id": "d1s1o6-q3",
+     "type": "order",
+     "difficulty": 2,
+     "scenario": "A developer wants code on the existing VM VM1 to call Azure Resource Manager using a system-assigned managed identity. VM1 has no identity yet.",
+     "question": "Put the steps in the correct order.",
+     "items": [
+      "Enable the system-assigned managed identity on VM1, which creates its service principal",
+      "Assign an Azure role to VM1's identity on the target scope",
+      "From code on VM1, request a token from the IMDS endpoint with the Metadata: true header",
+      "Send the access token on the call to Azure Resource Manager"
+     ],
+     "explanation": "The service principal for a system-assigned identity only exists once the identity is enabled on the VM, so you can't grant it a role before then. After the role assignment, code on the VM gets a token from the local IMDS endpoint (169.254.169.254) and sends it to the target service. Requesting a token before the role assignment would give a token that the target rejects.",
+     "sources": [
+      {
+       "title": "What are managed identities for Azure resources?",
+       "url": "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview"
+      },
+      {
+       "title": "How managed identities work with Azure VMs",
+       "url": "https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/how-managed-identities-work-vm#system-assigned-managed-identity"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,656 @@
+{
+ "sectionId": "d2s1",
+ "objectives": [
+  {
+   "objectiveId": "d2s1o1",
+   "summary": "Storage account hardening comes down to a handful of account-level settings: secure transfer (HTTPS), minimum TLS version, blob anonymous access, Shared Key authorization, and the encryption options. The exam often tests the defaults, especially those that differ between the portal and CLI/ARM. It also tests what each setting overrides and which roles can change it, so it's worth knowing that Storage Account Contributor can list the account keys.",
+   "keyFacts": [
+    {
+     "fact": "If AllowSharedKeyAccess isn't set (null) or is true, the account accepts Shared Key requests. Setting it to false rejects requests signed with the account key with 403. Only Microsoft Entra ID requests, plus user delegation SAS where applicable, are accepted.",
+     "source": "https://learn.microsoft.com/azure/storage/common/shared-key-authorization-prevent"
+    },
+    {
+     "fact": "The portal sets MinimumTlsVersion to TLS 1.2 by default. PowerShell, Azure CLI and ARM templates leave the property unset, so it returns no value until you configure it explicitly. TLS 1.3 can be negotiated but can't be set as the minimum.",
+     "source": "https://learn.microsoft.com/azure/storage/common/transport-layer-security-configure-minimum-version"
+    },
+    {
+     "fact": "Setting AllowBlobPublicAccess to false overrides the anonymous access setting of every container in the account. The $web static website container is unaffected and always public. Containers default to no public read access (Private).",
+     "source": "https://learn.microsoft.com/azure/storage/blobs/anonymous-read-access-prevent"
+    },
+    {
+     "fact": "Owner, Contributor and Storage Account Contributor can change these account settings, and all three include listkeys/action, which gives full data access through the account keys.",
+     "source": "https://learn.microsoft.com/azure/storage/common/shared-key-authorization-prevent"
+    },
+    {
+     "fact": "Infrastructure encryption (double encryption) has to be enabled when the account is created. Customer-managed keys can be stored in Azure Key Vault or Managed HSM.",
+     "source": "https://learn.microsoft.com/azure/storage/common/secure-storage"
+    },
+    {
+     "fact": "To protect a storage account with Microsoft Entra Conditional Access policies, you must disallow Shared Key authorization on the account.",
+     "source": "https://learn.microsoft.com/azure/storage/common/authorize-data-access"
+    },
+    {
+     "fact": "Azure Storage stopped supporting TLS 1.0 and 1.1 on February 3, 2026, for new and existing accounts; TLS 1.2 is now the effective minimum. Older guidance saying an unset account accepts TLS 1.0 predates this retirement.",
+     "source": "https://learn.microsoft.com/azure/storage/common/transport-layer-security-configure-migrate-to-tls2"
+    }
+   ],
+   "portalPath": "Storage account > Settings > Configuration (Secure transfer required, Allow Blob anonymous access, Allow storage account key access, Minimum TLS version); Security + networking > Encryption",
+   "lab": {
+    "title": "Harden a storage account with Azure CLI",
+    "steps": [
+     "In Cloud Shell, create a storage account: az storage account create --name <unique> --resource-group <rg> --kind StorageV2 --location eastus --allow-blob-public-access false",
+     "Check the TLS setting: az storage account show --name <unique> --resource-group <rg> --query minimumTlsVersion (with CLI it may come back empty).",
+     "Set TLS 1.2: az storage account update --name <unique> --resource-group <rg> --min-tls-version TLS1_2",
+     "Disable Shared Key: az storage account update --name <unique> --resource-group <rg> --allow-shared-key-access false",
+     "Verify: az storage account show --name <unique> --resource-group <rg> --query \"{tls:minimumTlsVersion, sharedKey:allowSharedKeyAccess, anon:allowBlobPublicAccess}\"",
+     "Try listing containers with key auth: az storage container list --account-name <unique> --auth-mode key"
+    ],
+    "verify": "The query returns TLS1_2, false and false. The key-based container list fails with an error saying key-based authorization isn't permitted. The same command with --auth-mode login works if you hold a blob data role.",
+    "source": "https://learn.microsoft.com/azure/storage/common/shared-key-authorization-prevent"
+   },
+   "learnModules": [
+    {
+     "title": "Plan and implement security for storage",
+     "url": "https://learn.microsoft.com/training/modules/security-storage/"
+    },
+    {
+     "title": "Configure Azure Storage security",
+     "url": "https://learn.microsoft.com/training/modules/configure-storage-security/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "A storage account is created with Azure CLI without --min-tls-version. What does its MinimumTlsVersion property return?",
+     "back": "Nothing (null or empty) until you set it explicitly. Only the portal sets TLS 1.2 by default.",
+     "source": "https://learn.microsoft.com/azure/storage/common/transport-layer-security-configure-minimum-version"
+    },
+    {
+     "front": "What must you change on a storage account before Conditional Access can protect it?",
+     "back": "Disallow Shared Key authorization (AllowSharedKeyAccess = false).",
+     "source": "https://learn.microsoft.com/azure/storage/common/authorize-data-access"
+    },
+    {
+     "front": "Which container stays publicly accessible even when Allow Blob anonymous access is Disabled?",
+     "back": "$web, the static website container.",
+     "source": "https://learn.microsoft.com/azure/storage/blobs/anonymous-read-access-prevent"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s1o1-q1",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "Contoso deploys storage account stapp01 from an ARM template that doesn't set minimumTlsVersion or allowSharedKeyAccess.",
+     "question": "For each statement, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "Querying stapp01's minimumTlsVersion property returns TLS1_2.",
+       "answer": false
+      },
+      {
+       "text": "stapp01 accepts requests authorized with the storage account key.",
+       "answer": true
+      },
+      {
+       "text": "Setting allowBlobPublicAccess to false on stapp01 blocks anonymous reads even from containers whose access level is Container.",
+       "answer": true
+      }
+     ],
+     "explanation": "Statement 1: No. Templates, CLI and PowerShell leave MinimumTlsVersion unset, so the property returns no value until you configure it; only the portal sets 1.2 by default. Statement 2: Yes. A null AllowSharedKeyAccess allows Shared Key. Statement 3: Yes. The account-level setting overrides every container's anonymous access level.",
+     "sources": [
+      {
+       "title": "Enforce a minimum required version of TLS for requests to a storage account",
+       "url": "https://learn.microsoft.com/azure/storage/common/transport-layer-security-configure-minimum-version"
+      },
+      {
+       "title": "Prevent Shared Key authorization for an Azure Storage account",
+       "url": "https://learn.microsoft.com/azure/storage/common/shared-key-authorization-prevent"
+      },
+      {
+       "title": "Remediate anonymous read access to blob data",
+       "url": "https://learn.microsoft.com/azure/storage/blobs/anonymous-read-access-prevent"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o1-q2",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Fabrikam wants storage account stfin01 to be protected by a Microsoft Entra Conditional Access policy that requires a compliant device for data access.",
+     "question": "Which storage account setting must you configure first?",
+     "options": [
+      "Set Allow storage account key access to Disabled.",
+      "Set Minimum TLS version to 1.2.",
+      "Enable infrastructure encryption.",
+      "Set Allow Blob anonymous access to Enabled."
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Conditional Access can only protect a storage account when Shared Key authorization is disallowed. Requests signed with an account key don't involve Entra ID, so they would bypass the policy. Minimum TLS and infrastructure encryption are good hardening steps but have nothing to do with Conditional Access. Enabling anonymous access would weaken security and also bypass identity checks.",
+     "sources": [
+      {
+       "title": "Authorize access to data in Azure Storage",
+       "url": "https://learn.microsoft.com/azure/storage/common/authorize-data-access"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o1-q3",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Admin1 must be able to change the Allow Blob anonymous access setting on stweb01 but must not get data access through the account keys. You consider assigning Storage Account Contributor.",
+     "question": "Does Storage Account Contributor meet the goal?",
+     "options": [
+      "Yes, because Storage Account Contributor can't read blob data.",
+      "No, because Storage Account Contributor includes Microsoft.Storage/storageAccounts/listkeys/action, which gives full data access through the keys.",
+      "No, because only Owner can change AllowBlobPublicAccess.",
+      "Yes, because data access always requires a Storage Blob Data role."
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "Owner, Contributor and Storage Account Contributor can all set AllowBlobPublicAccess, but each includes the listkeys action, and with the keys a user can reach all data in the account. That fails the requirement. Storage Account Contributor doesn't grant data access through Entra ID, but it does through the keys. Contributor and Storage Account Contributor can change the setting too, not only Owner. Data access isn't limited to Storage Blob Data roles while Shared Key is allowed.",
+     "sources": [
+      {
+       "title": "Remediate anonymous read access to blob data",
+       "url": "https://learn.microsoft.com/azure/storage/blobs/anonymous-read-access-prevent"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d2s1o2",
+   "summary": "The storage firewall restricts the public endpoint with four kinds of rules: virtual network rules (which rely on service endpoints), public IP rules, resource instance rules, and the trusted Azure services exception. Exam questions focus on rule limits, the restrictions on IP rules, what each rule type actually grants, and how much precedence trusted services get.",
+   "keyFacts": [
+    {
+     "fact": "The four network rule types are virtual network rules, IP network rules, resource instance rules and trusted service exceptions. Each storage account supports up to 400 IP network rules and up to 400 virtual network rules.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security"
+    },
+    {
+     "fact": "IP rules accept public IPv4 addresses only. RFC 1918 private ranges aren't allowed, /31 and /32 prefixes have to be entered as single addresses, and IP rules have no effect on requests from the same Azure region as the account.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-limitations"
+    },
+    {
+     "fact": "A resource instance rule opens the public endpoint to a specific Azure resource, which must be in the same tenant but can be in any subscription. It doesn't grant data access, so the resource's managed identity still needs an Azure role.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-resource-instances"
+    },
+    {
+     "fact": "Microsoft recommends resource instance rules over the broad 'Allow Azure services on the trusted services list' exception because they create a smaller trust surface. The exception covers only documented service scenarios and doesn't open the account to all of Azure.",
+     "source": "https://learn.microsoft.com/azure/storage/common/secure-storage"
+    },
+    {
+     "fact": "Trusted service access has the highest precedence. If you switch Public network access from 'selected networks' to Disabled, existing resource instance rules and exceptions, trusted services included, stay in effect.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-limitations"
+    },
+    {
+     "fact": "Firewall rules apply only to data-plane operations, not control-plane operations. Enabling a service endpoint on a subnet switches its traffic to a private source IP, so IP rules for that subnet's old public IP stop working.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-limitations"
+    }
+   ],
+   "portalPath": "Storage account > Security + networking > Networking > Public network access (Manage) and Resource settings: Virtual networks, IP addresses, and exceptions > View",
+   "lab": {
+    "title": "Restrict a storage account to your IP and one resource instance",
+    "steps": [
+     "Open the storage account > Security + networking > Networking. Under Public network access select Manage > Enable > Enabled from selected networks, and save.",
+     "Under Resource settings: Virtual networks, IP addresses, and exceptions, select View. In the IP box, add your client's public IPv4 address, not a 10.x/192.168.x private address.",
+     "In the Resource instances section, choose a Resource type (for example Microsoft.DataFactory/factories) and an instance, and save.",
+     "From Cloud Shell, list a resource instance rule: az storage account network-rule list -g <rg> --account-name <account>",
+     "From a machine whose IP isn't allowed, try to list blobs in a container."
+    ],
+    "verify": "The network-rule list output shows the IP rule and the resourceAccessRules entry. Data access from your allowed IP works, while access from other networks returns 403 (AuthorizationFailure).",
+    "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-resource-instances"
+   },
+   "learnModules": [
+    {
+     "title": "Secure your Azure Storage account",
+     "url": "https://learn.microsoft.com/training/modules/secure-azure-storage-account/"
+    },
+    {
+     "title": "Guided Project - Azure Files and Azure Blobs",
+     "url": "https://learn.microsoft.com/training/modules/guided-project-azure-files-azure-blobs/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Can you add 10.1.0.0/16 as a storage firewall IP rule?",
+     "back": "No. IP rules accept public IPv4 only, and RFC 1918 ranges aren't allowed. Use a virtual network rule or a private endpoint instead.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-limitations"
+    },
+    {
+     "front": "Does a resource instance rule give a Data Factory access to blob data?",
+     "back": "No. It opens network access only. Its managed identity still needs an Azure role, such as Storage Blob Data Reader.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security-resource-instances"
+    },
+    {
+     "front": "What is the maximum number of IP network rules per storage account?",
+     "back": "400.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-network-security"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s1o2-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso's storage account stdata01 allows only selected networks. A single Azure Synapse workspace, Synapse1, in another subscription of the same tenant must read blobs through its system-assigned managed identity. Security wants the smallest possible trust surface.",
+     "question": "Which network configuration should you add?",
+     "options": [
+      "Enable 'Allow Azure services on the trusted services list to access this storage account'.",
+      "Add a resource instance rule for Synapse1.",
+      "Add an IP network rule for Synapse1's outbound public IP address.",
+      "Set Public network access to Enabled from all networks."
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "A resource instance rule authorizes one named resource, and Microsoft recommends it over the trusted services exception because the trust surface is smaller. Resource instances can come from any subscription in the same tenant. The trusted services exception would admit qualifying instances broadly rather than just Synapse1. IP rules don't apply to Azure services in the same region and aren't reliable for Azure-hosted services. Opening the account to all networks removes the restriction entirely.",
+     "sources": [
+      {
+       "title": "Secure your Azure Storage account",
+       "url": "https://learn.microsoft.com/azure/storage/common/secure-storage"
+      },
+      {
+       "title": "Azure Storage firewall rules and network access control",
+       "url": "https://learn.microsoft.com/azure/storage/common/storage-network-security"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o2-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about the Azure Storage firewall, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "You can add 192.168.10.0/24 as an IP network rule to allow an on-premises office.",
+       "answer": false
+      },
+      {
+       "text": "After you add a resource instance rule for an Azure Data Factory, the factory can read blobs without any further role assignment.",
+       "answer": false
+      },
+      {
+       "text": "If you set Public network access to Disabled after previously using selected networks, the trusted services exception stays in effect.",
+       "answer": true
+      }
+     ],
+     "explanation": "Statement 1: No. IP rules accept only public internet addresses, so you would add the office's public NAT address. Statement 2: No. A resource instance rule opens the public endpoint but not the data. The factory's managed identity still needs an Azure role. Statement 3: Yes. Trusted service access has the highest precedence, so previously configured exceptions and resource instances keep working.",
+     "sources": [
+      {
+       "title": "Guidelines and limitations for the Azure Storage firewall",
+       "url": "https://learn.microsoft.com/azure/storage/common/storage-network-security-limitations"
+      },
+      {
+       "title": "Create a resource instance network rule for Azure Storage",
+       "url": "https://learn.microsoft.com/azure/storage/common/storage-network-security-resource-instances"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o2-q3",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "VM1 is in Subnet1 of VNet1 in West Europe. Storage account stlogs01 is in East US and allows only selected networks. stlogs01 has an IP network rule for VM1's public IP address, and VM1 can read blobs. An engineer then enables the Microsoft.Storage.Global service endpoint on Subnet1, and VM1 starts getting 403 errors.",
+     "question": "What should you do to restore access?",
+     "options": [
+      "Add a virtual network rule for Subnet1 on stlogs01.",
+      "Add VM1's private IP address as an IP network rule.",
+      "Enable the trusted services exception on stlogs01.",
+      "Delete and re-create the IP network rule for VM1's public IP address."
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Once a subnet has a storage service endpoint (Microsoft.Storage.Global covers accounts in any region), its storage traffic uses a private source IP, so the IP rule for VM1's public address no longer matches. A virtual network rule for Subnet1 fixes it, and VNet rules can reference subnets in any region. Private (RFC 1918) addresses can't be used in IP rules. The trusted services exception covers specific Azure services, not your VMs. Re-creating the same public IP rule changes nothing, because the traffic no longer comes from that address.",
+     "sources": [
+      {
+       "title": "Azure Storage firewall rules and network access control",
+       "url": "https://learn.microsoft.com/azure/storage/common/storage-network-security"
+      },
+      {
+       "title": "Guidelines and limitations for the Azure Storage firewall",
+       "url": "https://learn.microsoft.com/azure/storage/common/storage-network-security-limitations"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d2s1o3",
+   "summary": "Defender for Storage (the current plan, priced per storage account) has three parts. Activity monitoring is always on. Malware scanning is billed per GB, runs on upload or on demand, and is powered by Microsoft Defender Antivirus. Sensitive data threat detection is free with the plan. You need to know the defaults, the monthly scan cap, the ways scan results are delivered and their prerequisites, and how to override subscription-level settings for one account.",
+   "keyFacts": [
+    {
+     "fact": "Enabling the plan at subscription level in the portal turns on on-upload malware scanning and sensitive data threat detection by default. Sensitive data threat detection adds no cost, while malware scanning is billed per GB scanned.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-storage-azure-portal-enablement"
+    },
+    {
+     "fact": "On-upload scanning has a default cap of 10,000 GB (10 TB) per storage account per month. Scanning stops once the cap is reached, give or take about 20 GB, and the cap resets at midnight UTC at the end of each month.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/on-upload-malware-scanning"
+    },
+    {
+     "fact": "Scan results go to blob index tags (on by default, but not tamper-resistant) and to Defender for Cloud alerts. You can also send them to an Event Grid custom topic for near-real-time automation, which must be in the same region as the storage account, allow public network access and use the Event Grid schema. A Log Analytics workspace stores them in the StorageMalwareScanningResults table.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+    },
+    {
+     "fact": "The built-in 'soft delete malicious blobs' remediation is off by default. If blob soft delete isn't already on, turning the feature on enables it, with a default retention of 7 days (range 1–365).",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-storage-configure-malware-scan"
+    },
+    {
+     "fact": "To give one storage account settings that differ from the subscription, such as its own Event Grid topic or a different cap, set 'Override Defender for Storage subscription-level settings' to On for that account.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+    },
+    {
+     "fact": "Sensitive data threat detection runs an agentless sampling engine that uses Microsoft Purview sensitive information types. Results usually arrive within 24 hours, new accounts are scanned within 6 hours, and rescans happen weekly.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-storage-data-sensitivity"
+    },
+    {
+     "fact": "Defender for Cloud raises an alert when an account reaches 75% of its monthly scan cap and another when the cap is reached and scanning stops for the rest of the month.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-storage-introduction"
+    },
+    {
+     "fact": "On-upload malware scanning requires the Microsoft.EventGrid resource provider to be registered, and enabling it creates an Event Grid system topic in the storage account's resource group.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/on-upload-malware-scanning"
+    }
+   ],
+   "portalPath": "Defender for Cloud > Environment settings > subscription > Defender plans > Storage > Settings / Edit configuration; Storage account > Security + networking > Microsoft Defender for Cloud > Settings",
+   "lab": {
+    "title": "Send malware scan results to Log Analytics and test with EICAR",
+    "steps": [
+     "Register the Microsoft.EventGrid resource provider in your trial subscription, then enable Defender for Storage on a test storage account: storage account > Security + networking > Microsoft Defender for Cloud > Enable on storage account.",
+     "Create a Log Analytics workspace in the same subscription.",
+     "In the storage account's Microsoft Defender for Cloud > Settings, set 'Override Defender for Storage subscription-level settings' to On, set the GB-per-month limit to 50, choose the workspace as the scan results destination, and save.",
+     "Upload the EICAR antimalware test file (a harmless standard test string) to a container.",
+     "Open the blob's Index tags and look at the scan result tag.",
+     "In the workspace, run: StorageMalwareScanningResults | take 10"
+    ],
+    "verify": "The blob's index tags show the result as Malicious, a Defender for Cloud security alert appears, and the StorageMalwareScanningResults table contains the scan record. The table is created when the first result is recorded.",
+    "source": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+   },
+   "learnModules": [
+    {
+     "title": "Secure your Azure Storage account (Advanced Threat Protection)",
+     "url": "https://learn.microsoft.com/training/modules/secure-azure-storage-account/"
+    },
+    {
+     "title": "Set up Microsoft Defender for Cloud",
+     "url": "https://learn.microsoft.com/training/modules/set-up-microsoft-defender-cloud/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "What is the default monthly on-upload malware scanning cap per storage account?",
+     "back": "10,000 GB (10 TB). Set it to -1 to allow unlimited scanning.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+    },
+    {
+     "front": "What are the three requirements for an Event Grid custom topic that receives malware scan results?",
+     "back": "It must be in the same region as the storage account, allow public network access, and use the Event Grid schema.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+    },
+    {
+     "front": "Which Log Analytics table stores Defender for Storage malware scan results?",
+     "back": "StorageMalwareScanningResults.",
+     "source": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s1o3-q1",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "Contoso's upload portal stores documents in stuploads01 (West Europe). The moment a blob is found to be malicious, a Function App must move it to quarantine, and it must not rely on data that users could tamper with. Defender for Storage is enabled at subscription level.",
+     "question": "What should you configure on stuploads01?",
+     "options": [
+      "Have the Function App poll blob index tags every minute for the 'Malicious' result.",
+      "Send scan results to an Event Grid custom topic in West Europe that allows public network access and uses the Event Grid schema, and set 'Override Defender for Storage subscription-level settings' to On.",
+      "Send scan results to a Log Analytics workspace and run a scheduled query once a day.",
+      "Send scan results to an Event Grid custom topic in North Europe that has public network access disabled."
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "An Event Grid custom topic gives near-real-time results for automation. It must be in the same region as the account, allow public access and use the Event Grid schema, and setting the topic per account requires the override so the subscription settings don't replace it. Index tags aren't tamper-resistant and shouldn't be the only control. Log Analytics suits compliance and audit, not instant response. A topic in a different region with public access disabled breaks the stated requirements.",
+     "sources": [
+      {
+       "title": "Advanced configurations for malware scanning in Microsoft Defender for Storage",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+      },
+      {
+       "title": "Introduction to malware scanning",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/introduction-malware-scanning"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o3-q2",
+     "type": "yesno",
+     "difficulty": 2,
+     "scenario": "Fabrikam enables the Defender for Storage plan on Subscription1 in the Azure portal with the default settings.",
+     "question": "For each statement, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "Sensitive data threat detection is enabled and adds a per-GB charge.",
+       "answer": false
+      },
+      {
+       "text": "On-upload malware scanning stops for a storage account once about 10,000 GB has been scanned in a calendar month.",
+       "answer": true
+      },
+      {
+       "text": "Malicious blobs are soft deleted automatically by default.",
+       "answer": false
+      }
+     ],
+     "explanation": "Statement 1: No. Sensitive data threat detection is on by default but costs nothing extra. Malware scanning is the part billed per GB. Statement 2: Yes. The default cap is 10,000 GB per account per month, with up to about 20 GB of deviation, and it resets at the end of each month. Statement 3: No. The soft delete malicious blobs feature is off by default and must be turned on.",
+     "sources": [
+      {
+       "title": "Sensitive data threat detection in Microsoft Defender for Storage",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-storage-data-sensitivity"
+      },
+      {
+       "title": "On-upload malware scanning",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/on-upload-malware-scanning"
+      },
+      {
+       "title": "Set up automated remediation for malware detection",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/defender-for-storage-configure-malware-scan"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o3-q3",
+     "type": "multi",
+     "difficulty": 2,
+     "scenario": "You are writing a runbook for Defender for Storage malware scanning results.",
+     "question": "Which two locations receive scan results without any extra destination configuration after malware scanning is enabled? Each correct answer presents a complete solution. Choose two.",
+     "options": [
+      "Blob index tags on each scanned blob",
+      "Microsoft Defender for Cloud security alerts for malicious files",
+      "The StorageMalwareScanningResults table in Log Analytics",
+      "An Event Grid custom topic",
+      "Azure Monitor metrics for the storage account"
+     ],
+     "answer": [
+      0,
+      1
+     ],
+     "explanation": "After setup, every scanned blob gets blob index tags with the result and scan time unless you turn that off, and malicious files raise Defender for Cloud security alerts. Log Analytics (StorageMalwareScanningResults) and an Event Grid custom topic both need extra configuration. Azure Monitor metrics aren't listed as a way to deliver scan results.",
+     "sources": [
+      {
+       "title": "Introduction to malware scanning",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/introduction-malware-scanning"
+      },
+      {
+       "title": "Advanced configurations for malware scanning in Microsoft Defender for Storage",
+       "url": "https://learn.microsoft.com/azure/defender-for-cloud/advanced-configurations-for-malware-scanning"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "objectiveId": "d2s1o4",
+   "summary": "Delegated access to Azure Storage relies on shared access signatures. A user delegation SAS is signed with Entra credentials, and a service SAS or account SAS is signed with the account key. A stored access policy gives you server-side control and a way to revoke service SAS tokens. The exam tests which SAS types can use stored access policies, how to revoke each type, the limits (five policies and seven days), and the least-privileged role needed to create a user delegation SAS.",
+   "keyFacts": [
+    {
+     "fact": "There are three SAS types. A user delegation SAS is signed with a user delegation key from Microsoft Entra ID and is the type Microsoft recommends. A service SAS covers one storage service and is signed with the account key. An account SAS covers one or more services, including service-level operations, and is also signed with the account key.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-sas-overview"
+    },
+    {
+     "fact": "Stored access policies work only with a service SAS. A user delegation SAS or account SAS must be an ad hoc SAS. Blob containers, file shares, queues and tables each support up to five stored access policies, and a sixth returns 400 (Bad Request).",
+     "source": "https://learn.microsoft.com/rest/api/storageservices/define-stored-access-policy"
+    },
+    {
+     "fact": "A start time, expiry time or permission can be set on the SAS token or on the stored access policy, not on both. A new or changed policy can take up to 30 seconds to take effect, and requests may get 403 in the meantime.",
+     "source": "https://learn.microsoft.com/rest/api/storageservices/define-stored-access-policy"
+    },
+    {
+     "fact": "To revoke a service SAS tied to a stored access policy, delete the policy, change its expiry to the past, or rename its identifier. Recreating a policy under the same name revives old tokens. An ad hoc service or account SAS can be revoked only by regenerating the account key that signed it.",
+     "source": "https://learn.microsoft.com/azure/hdinsight/hdinsight-storage-sharedaccesssignature-permissions"
+    },
+    {
+     "fact": "A user delegation key, and so any SAS it signs, is valid for at most 7 days. Revoking the user delegation keys (az storage account revoke-delegation-keys) invalidates every SAS they signed, though caching can delay the effect.",
+     "source": "https://learn.microsoft.com/azure/storage/blobs/storage-blob-user-delegation-sas-create-cli"
+    },
+    {
+     "fact": "Requesting a user delegation key needs generateUserDelegationKey at storage account, resource group or subscription scope. The least-privileged built-in role is Storage Blob Delegator, which you can add for a principal whose data role is scoped only to a container.",
+     "source": "https://learn.microsoft.com/rest/api/storageservices/get-user-delegation-key"
+    }
+   ],
+   "portalPath": "Storage account > Data storage > Containers > select container > ... > Access policy > Stored access policies > + Add policy; Container or blob > Generate SAS",
+   "lab": {
+    "title": "Create, use and revoke a stored-access-policy SAS",
+    "steps": [
+     "In the portal, open a storage account > Containers. Select a container, then ... > Access policy.",
+     "Under Stored access policies, select + Add policy. Set Identifier to policy-read, permission to Read, and an expiry one day out, then OK and Save.",
+     "Upload a test file to the container. On the blob, select Generate SAS, choose Signing method: Account key and Stored access policy: policy-read, then generate the SAS URL.",
+     "Open the SAS URL in a browser to confirm the download works.",
+     "Return to Access policy and delete policy-read (or rename its identifier), then save. Wait about 30 seconds.",
+     "Open the same SAS URL again."
+    ],
+    "verify": "Before you remove the policy the blob downloads. Afterwards the same URL fails with an authentication error, which shows the SAS was revoked without regenerating the account keys.",
+    "source": "https://learn.microsoft.com/azure/storage/blobs/blob-containers-portal"
+   },
+   "learnModules": [
+    {
+     "title": "Implement shared access signatures",
+     "url": "https://learn.microsoft.com/training/modules/implement-shared-access-signatures/"
+    },
+    {
+     "title": "Configure Azure Storage security",
+     "url": "https://learn.microsoft.com/training/modules/configure-storage-security/"
+    }
+   ],
+   "flashcards": [
+    {
+     "front": "Which SAS type can be associated with a stored access policy?",
+     "back": "Only a service SAS. User delegation and account SAS must be ad hoc.",
+     "source": "https://learn.microsoft.com/azure/storage/common/storage-sas-overview"
+    },
+    {
+     "front": "What is the maximum lifetime of a user delegation SAS?",
+     "back": "7 days, the maximum lifetime of the user delegation key that signs it.",
+     "source": "https://learn.microsoft.com/azure/storage/blobs/storage-blob-user-delegation-sas-create-cli"
+    },
+    {
+     "front": "How many stored access policies can a container have?",
+     "back": "Five. A sixth fails with 400 (Bad Request).",
+     "source": "https://learn.microsoft.com/rest/api/storageservices/define-stored-access-policy"
+    }
+   ],
+   "questions": [
+    {
+     "id": "d2s1o4-q1",
+     "type": "single",
+     "difficulty": 2,
+     "scenario": "Contoso gives a partner a SAS for container invoices. If the token leaks, it must be possible to revoke it quickly without breaking other applications that use the storage account keys, and without changing the partner's Entra permissions. Shared Key access is allowed on the account.",
+     "question": "Which type of SAS should you issue?",
+     "options": [
+      "An ad hoc account SAS",
+      "A service SAS associated with a stored access policy on the invoices container",
+      "An ad hoc service SAS with a one-year expiry",
+      "An account SAS associated with a stored access policy"
+     ],
+     "answer": [
+      1
+     ],
+     "explanation": "A service SAS bound to a stored access policy can be revoked by deleting or changing the policy, so the account keys don't need regenerating. An ad hoc account or service SAS can be revoked only by regenerating the key that signed it, which would break the other applications, and a one-year expiry makes the exposure worse. Account SAS can't use stored access policies at all.",
+     "sources": [
+      {
+       "title": "Grant limited access to Azure Storage resources using shared access signatures (SAS)",
+       "url": "https://learn.microsoft.com/azure/storage/common/storage-sas-overview"
+      },
+      {
+       "title": "Use Azure Blob storage Shared Access Signatures to restrict access to data in HDInsight",
+       "url": "https://learn.microsoft.com/azure/hdinsight/hdinsight-storage-sharedaccesssignature-permissions"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o4-q2",
+     "type": "single",
+     "difficulty": 3,
+     "scenario": "App1 runs with a managed identity that has Storage Blob Data Reader scoped to container reports in stcorp01. App1 must issue read-only user delegation SAS tokens for blobs in reports. Calls to Get User Delegation Key currently fail. Your solution must follow the principle of least privilege.",
+     "question": "Which additional role assignment should you make for App1's managed identity?",
+     "options": [
+      "Storage Blob Delegator at the stcorp01 storage account scope",
+      "Storage Blob Delegator at the reports container scope",
+      "Storage Account Contributor at the stcorp01 scope",
+      "Storage Blob Data Owner at the reports container scope"
+     ],
+     "answer": [
+      0
+     ],
+     "explanation": "Get User Delegation Key works at storage account level, so generateUserDelegationKey has to be granted at account, resource group or subscription scope. Storage Blob Delegator is the least-privileged built-in role with that action, and Learn suggests adding it when the data role is scoped to a container. A container-scoped assignment doesn't cover the account-level operation. Storage Account Contributor would also grant listkeys and management rights. A container-scoped Data Owner still lacks the action at account scope and adds write permissions.",
+     "sources": [
+      {
+       "title": "Blob Get User Delegation Key",
+       "url": "https://learn.microsoft.com/rest/api/storageservices/get-user-delegation-key"
+      },
+      {
+       "title": "Create a user delegation SAS",
+       "url": "https://learn.microsoft.com/rest/api/storageservices/create-user-delegation-sas"
+      }
+     ]
+    },
+    {
+     "id": "d2s1o4-q3",
+     "type": "yesno",
+     "difficulty": 2,
+     "question": "For each statement about shared access signatures, select Yes if it is true. Otherwise, select No.",
+     "statements": [
+      {
+       "text": "A user delegation SAS created with an expiry 30 days in the future stays valid for 30 days.",
+       "answer": false
+      },
+      {
+       "text": "If you delete a stored access policy and then recreate it with the same name, SAS tokens issued under the old policy become valid again (if they haven't expired).",
+       "answer": true
+      },
+      {
+       "text": "You can specify the expiry time both in the SAS token and in its stored access policy.",
+       "answer": false
+      }
+     ],
+     "explanation": "Statement 1: No. The user delegation key that signs the SAS lasts at most 7 days, so the SAS stops working when the key expires. Statement 2: Yes. Old tokens are valid again under a policy with the same name, so use a new name when you recreate a policy to revoke access. Statement 3: No. Each parameter can be set on either the token or the policy, but not on both.",
+     "sources": [
+      {
+       "title": "Create a user delegation SAS for a container or blob with the Azure CLI",
+       "url": "https://learn.microsoft.com/azure/storage/blobs/storage-blob-user-delegation-sas-create-cli"
+      },
+      {
+       "title": "Use Azure Blob storage Shared Access Signatures to restrict access to data in HDInsight",
+       "url": "https://learn.microsoft.com/azure/hdinsight/hdinsight-storage-sharedaccesssignature-permissions"
+      },
+      {
+       "title": "Define a stored access policy",
+       "url": "https://learn.microsoft.com/rest/api/storageservices/define-stored-access-policy"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
